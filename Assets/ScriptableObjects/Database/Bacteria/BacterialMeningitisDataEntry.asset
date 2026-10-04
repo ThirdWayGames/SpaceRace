@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa771f946998dab43a5177134c0f7790, type: 3}
+  m_Name: BacterialMeningitisDataEntry
+  m_EditorClassIdentifier: 
+  EntryType: 0
+  Image: {fileID: 21300000, guid: 0790f864efc1caf4fbf466fd7aa481fb, type: 3}
+  ApplyImageTint: 0
+  ImageTint: {r: 0, g: 0, b: 0, a: 0}
+  Name: Bacterial Meningitis
+  EntrySubDetails:
+  - {fileID: 11400000, guid: 70f25de80f054e54f9da504cd6c6421a, type: 2}
+  - {fileID: 11400000, guid: a300ff37a4b12f942aa37e53a7c69ea1, type: 2}
+  - {fileID: 11400000, guid: d712e7d2efa0516458bda56422a354dd, type: 2}
+  - {fileID: 11400000, guid: cf835d5b0e77f6148bb76f88678f5f49, type: 2}
+  - {fileID: 11400000, guid: ad3e95f1d8050ea49bb9180097630634, type: 2}
+  - {fileID: 11400000, guid: 41b9638b41b39be4a9ac0e952af7a675, type: 2}
+  - {fileID: 11400000, guid: d865eb4d91d3ff949b37c6ab9d81dd45, type: 2}
+  - {fileID: 11400000, guid: efca6ae622ede5c4abafcb4d4eb7dfd2, type: 2}

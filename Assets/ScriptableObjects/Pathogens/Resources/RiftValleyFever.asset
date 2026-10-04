@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c8d3326099632b4ea995154a3993dea, type: 3}
+  m_Name: RiftValleyFever
+  m_EditorClassIdentifier: 
+  PathogenName: Rift Valley Fever
+  PathogenIcdCode: A92.4
+  Severity: 1
+  DeliveryType: 1
+  PathogenElements:
+  - {fileID: 11400000, guid: 9d2a9c23fbee5464f9949157559be31f, type: 2}
+  - {fileID: 11400000, guid: 07ce32a3f6941234ba816a6c62e000fe, type: 2}
+  - {fileID: 11400000, guid: 97fb1995b91052e41b552f492ef68c3c, type: 2}
+  AntidotalElements:
+  - {fileID: 11400000, guid: b5eb52c6986da014ca559a19e6c57a4d, type: 2}
+  SymptomMutations:
+  - {fileID: 11400000, guid: 231f5d4ced684b8468a58cf29e4f2380, type: 2}
+  - {fileID: 11400000, guid: b5bc66dcce92c8248b06f95be7ce04f5, type: 2}

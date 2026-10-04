@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4b28d3fbf2ceb44aa69c75a921f9e95, type: 3}
+  m_Name: 1_Definition
+  m_EditorClassIdentifier: 
+  ImageLeft: {fileID: 0}
+  Title: Definition
+  Description: The aim of antiviral therapy is to minimize symptoms and infectivity
+    as well as to shorten the duration of illness. These drugs act by arresting the
+    viral replication cycle at various stages. Because viruses are obligate, intracellular
+    parasites, it is difficult to find drug targets that interfere with viral replication
+    without also harming the host cells. Unlike other antimicrobials, antiviral drugs
+    do not deactivate or destroy the virus but act by inhibiting replication. In this
+    way, they prevent the viral load from increasing to a point where it could cause
+    pathogenesis, allowing the body's innate immune mechanisms to neutralize the virus.
+  ImageRight: {fileID: 0}

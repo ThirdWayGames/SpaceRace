@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4b28d3fbf2ceb44aa69c75a921f9e95, type: 3}
+  m_Name: 0_Description
+  m_EditorClassIdentifier: 
+  ImageLeft: {fileID: 0}
+  Title: 
+  Description: Bacteria are microscopic, single-celled organisms that thrive in diverse
+    environments. These organisms can live in soil, the ocean and inside the human
+    gut. Bacteria are classified as prokaryotes, which are single-celled organisms
+    with a simple internal structure that lacks a nucleus, and contains DNA that either
+    floats freely in a twisted, thread-like mass called the nucleoid, or in separate,
+    circular pieces called plasmids. Ribosomes are the spherical units in the bacterial
+    cell where proteins are assembled from individual amino acids using the information
+    encoded in ribosomal RNA.
+  ImageRight: {fileID: 0}

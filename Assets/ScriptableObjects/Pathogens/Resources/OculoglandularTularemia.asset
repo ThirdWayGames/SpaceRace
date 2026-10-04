@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c8d3326099632b4ea995154a3993dea, type: 3}
+  m_Name: OculoglandularTularemia
+  m_EditorClassIdentifier: 
+  PathogenName: Oculoglandular Tularemia
+  PathogenIcdCode: A21.1
+  Severity: 1
+  DeliveryType: 1
+  PathogenElements:
+  - {fileID: 11400000, guid: 3cf8ecac74448f44cb150f3d63fd14dc, type: 2}
+  - {fileID: 11400000, guid: 40c24c40889fc9142a1ae03e07b01c3a, type: 2}
+  - {fileID: 11400000, guid: accab71860623df4a9832a346421f3bc, type: 2}
+  AntidotalElements:
+  - {fileID: 11400000, guid: 65a6a5b944e107d43b4fb9a560454efe, type: 2}
+  - {fileID: 11400000, guid: 859d30f4faddb404d823b7eab8f80f6d, type: 2}
+  SymptomMutations:
+  - {fileID: 11400000, guid: c0d65ebe01d2d6849b220222712aa6ae, type: 2}
+  - {fileID: 11400000, guid: 5b7be11bd11a45448acaf0285ceab406, type: 2}

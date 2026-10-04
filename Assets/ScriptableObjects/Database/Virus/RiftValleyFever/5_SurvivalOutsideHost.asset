@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4b28d3fbf2ceb44aa69c75a921f9e95, type: 3}
+  m_Name: 5_SurvivalOutsideHost
+  m_EditorClassIdentifier: 
+  Title: 'Survival Outside Host:'
+  Description: "In vitro experiments suggest that RVF virus can persist for a few
+    days in some protein-rich environments such as tissues. In a neutral or alkaline
+    pH, mixed with serum or other proteins, the virus may survive for as long as 4
+    months at 4\xB0C (40\xB0F) and 8 years below 0\xB0C (32\xB0F). It is quickly destroyed
+    by pH changes in decomposing carcasses. "

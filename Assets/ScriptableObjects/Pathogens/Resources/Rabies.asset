@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c8d3326099632b4ea995154a3993dea, type: 3}
+  m_Name: Rabies
+  m_EditorClassIdentifier: 
+  PathogenName: Rabies
+  PathogenIcdCode: A82.9
+  Severity: 4
+  DeliveryType: 1
+  PathogenElements:
+  - {fileID: 11400000, guid: 509ad6622dd3bf640ba4529754a09591, type: 2}
+  - {fileID: 11400000, guid: 07ce32a3f6941234ba816a6c62e000fe, type: 2}
+  - {fileID: 11400000, guid: 97fb1995b91052e41b552f492ef68c3c, type: 2}
+  AntidotalElements:
+  - {fileID: 11400000, guid: 9a4cad961980133458c292823e61e3d0, type: 2}
+  - {fileID: 11400000, guid: bb5150b082c2a794b9f09d1b82dc7974, type: 2}
+  SymptomMutations:
+  - {fileID: 11400000, guid: d06a5bf351a23ed47a950975ad7cc5f6, type: 2}
+  - {fileID: 11400000, guid: bc45ec3cd3fb25440b6a5e9e3f305eda, type: 2}
+  - {fileID: 11400000, guid: a2564ad83f8a53b4ea321e4d6c9a108c, type: 2}
+  - {fileID: 11400000, guid: c5b01ef53b0b7444b8aa46b8e16f31ac, type: 2}
+  - {fileID: 11400000, guid: 304f81e6705dc0941a241ba67383f3a0, type: 2}

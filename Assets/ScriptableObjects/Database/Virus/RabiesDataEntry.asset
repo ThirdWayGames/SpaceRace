@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa771f946998dab43a5177134c0f7790, type: 3}
+  m_Name: RabiesDataEntry
+  m_EditorClassIdentifier: 
+  EntryType: 1
+  Image: {fileID: 21300000, guid: 7d07de697ed06f840a4528f66f74633b, type: 3}
+  ApplyImageTint: 0
+  ImageTint: {r: 0, g: 0, b: 0, a: 0}
+  Name: Rabies
+  EntrySubDetails:
+  - {fileID: 11400000, guid: 065b5eacc0ae9484da920a36f899a80f, type: 2}
+  - {fileID: 11400000, guid: d574ccd2ff47e354da17a19d36778686, type: 2}
+  - {fileID: 11400000, guid: 5cef6eaf66a64de44b7f823f2a1c1151, type: 2}
+  - {fileID: 11400000, guid: 187bff0fabdb8c04b8ad145a599cd8ce, type: 2}
+  - {fileID: 11400000, guid: 553e807ff848ba846947be98716e6840, type: 2}
+  - {fileID: 11400000, guid: 21ddbe5d431972a48bc0d326d848fc70, type: 2}
+  - {fileID: 11400000, guid: 97556719dc5650542bd6f43b4b4ab0a6, type: 2}
+  - {fileID: 11400000, guid: bda163ebca41a2c4691efd80af0845d8, type: 2}

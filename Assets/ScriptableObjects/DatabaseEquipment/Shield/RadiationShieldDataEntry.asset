@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa771f946998dab43a5177134c0f7790, type: 3}
+  m_Name: RadiationShieldDataEntry
+  m_EditorClassIdentifier: 
+  EntryType: 0
+  Image: {fileID: 21300000, guid: 7f108e6853484a649a6811bbc2946460, type: 3}
+  ApplyImageTint: 0
+  ImageTint: {r: 0, g: 0, b: 0, a: 0}
+  Name: Radiation Shield
+  EntrySubDetails:
+  - {fileID: 11400000, guid: b4364847aef71c448ac54fe329efe43a, type: 2}
+  - {fileID: 11400000, guid: 6532b2d1dc54fb647b65c2655214f095, type: 2}

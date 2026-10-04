@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/_Scenes/GameLauncher.unity
+    guid: dc296f706b7d0dd40bf364db80f77932
+  - enabled: 1
+    path: Assets/_Scenes/MatchLobby.unity
+    guid: 60c1f8081a827c54398e6d31704ea212
+  - enabled: 1
+    path: Assets/_Scenes/Missions/SpaceStationPve.unity
+    guid: 437b039fd9bbf9746a9534411bfe8282
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/DataCache.unity
+    guid: fe2399b95d0b7b34b9f25935fe049f98
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/SimpleMiniGame.unity
+    guid: c6b7314b48fdadb4d8340e6ecabd3554
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/EquipmentSelector.unity
+    guid: 691bc21dc91e6be43846b1b33d496c64
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/CircuitGame.unity
+    guid: cd0b6de4a62e5624ca6668c3187599ba
+  - enabled: 1
+    path: Assets/_Scenes/Missions/BioWarsTest.unity
+    guid: 8abb4bdb618e11840b1367bd47e3c85b
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/SynthLab.unity
+    guid: df6611061118ace429b29d0442039503
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/ScienceConsole.unity
+    guid: 8e1b578e368612440997804df7f7121d
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/Database.unity
+    guid: cd0af892c87fc9340a338d00461b2294
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/CureLab.unity
+    guid: 7503c71ecc3f12e4484a6fe50fea2b7d
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/DatabaseEquipment.unity
+    guid: 30ef3e6b400b6b747bb16e4368a33c16
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/CircuitGame2.unity
+    guid: 6f54d615f1e9df147beb652eccc544c0
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/CircuitGame3.unity
+    guid: 242ec37705df55241ace8fd5589e2d76
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/BlastWallBuild.unity
+    guid: 86864293941a53246a80a415693a21ff
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/FlameTurretBuild.unity
+    guid: ed0dacd1aec8a274b8c22b6957117585
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/HeavyBlasterTurretBuild.unity
+    guid: 063b5554acaa960489bc4d1133fd9cf0
+  - enabled: 1
+    path: Assets/_Scenes/MiniGames/RadiationBuild.unity
+    guid: 901e1aab16d34ff46b62e112f0787d1a
+  m_configObjects: {}

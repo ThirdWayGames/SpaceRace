@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c8d3326099632b4ea995154a3993dea, type: 3}
+  m_Name: PneumonicPlague
+  m_EditorClassIdentifier: 
+  PathogenName: Pneumonic Plague
+  PathogenIcdCode: A20.2
+  Severity: 4
+  DeliveryType: 3
+  PathogenElements:
+  - {fileID: 11400000, guid: 9d2a9c23fbee5464f9949157559be31f, type: 2}
+  - {fileID: 11400000, guid: a8fbab36e5738734198307d5847f69a9, type: 2}
+  - {fileID: 11400000, guid: 8d7a97bcc94458548a67af614588b21f, type: 2}
+  AntidotalElements:
+  - {fileID: 11400000, guid: 65a6a5b944e107d43b4fb9a560454efe, type: 2}
+  - {fileID: 11400000, guid: 5a9d62ab1bd59e448b4b3eca37c5a332, type: 2}
+  - {fileID: 11400000, guid: 33c67ac021be04d4f942c1d2decfe2b1, type: 2}
+  SymptomMutations:
+  - {fileID: 11400000, guid: 4f82bedfc4ba91c418f5eeca837a762c, type: 2}
+  - {fileID: 11400000, guid: 03e73aadcb2ccd24fa1aec8448a37f71, type: 2}
+  - {fileID: 11400000, guid: d06a5bf351a23ed47a950975ad7cc5f6, type: 2}
+  - {fileID: 11400000, guid: 8bc9a5744e2c0d541abcd94f9dc2888b, type: 2}

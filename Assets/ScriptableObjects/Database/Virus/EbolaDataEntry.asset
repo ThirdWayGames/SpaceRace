@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa771f946998dab43a5177134c0f7790, type: 3}
+  m_Name: EbolaDataEntry
+  m_EditorClassIdentifier: 
+  EntryType: 1
+  Image: {fileID: 21300000, guid: 7f95a3472323dab42a131a5ce0099571, type: 3}
+  ApplyImageTint: 0
+  ImageTint: {r: 0, g: 0, b: 0, a: 0}
+  Name: Ebola
+  EntrySubDetails:
+  - {fileID: 11400000, guid: 1d4f286ce28660d4d9276cba7071ae24, type: 2}
+  - {fileID: 11400000, guid: 8a665b219c7c4064893484d5c50258e0, type: 2}
+  - {fileID: 11400000, guid: 913c582524155a34398cea5edd2a44c0, type: 2}
+  - {fileID: 11400000, guid: b5a8e6fe048931b4c804c5a31ca3632a, type: 2}
+  - {fileID: 11400000, guid: 51253a8cfd8113141981a4c00eb20174, type: 2}
+  - {fileID: 11400000, guid: 6dd4a37f01552734a98d91606b9e0588, type: 2}
+  - {fileID: 11400000, guid: 9236f7567d53980409f83485bd1f5f83, type: 2}
+  - {fileID: 11400000, guid: e8d08e1981f33e84cab12fbdf879aaa5, type: 2}

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7ee84ebf9720c14aa76d6a0dddb9bef, type: 3}
+  m_Name: ConfusionTimedMutation
+  m_EditorClassIdentifier: 
+  ExecutionTime: 5
+  CureAfterExecution: 0
+  VacinateAfterCure: 0
+  ReinstateValuesAfterCure: 0
+  DelayCureByExecTime: 0
+  MutationDuration: 0
+  RandomiseExec: 1
+  ExecTimerMin: 20
+  ExecTimerMax: 40
+  MutationsToCureOnTrigger: []
+  MutationsToApplyOnTrigger:
+  - {fileID: 11400000, guid: 8ed5a00c499a1eb4fa81a23dc4373ad1, type: 2}

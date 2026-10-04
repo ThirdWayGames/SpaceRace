@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4b28d3fbf2ceb44aa69c75a921f9e95, type: 3}
+  m_Name: 3_MOT
+  m_EditorClassIdentifier: 
+  ImageLeft: {fileID: 0}
+  Title: 'Mode Of Transmission:'
+  Description: (Cloud and Bullet) Result of human intrusion into zoonotic (sylvatic)
+    cycle or by entry of rodents or infected fleas into human's habitat and bite of
+    infected fleas; domestic pets can carry plague-infected fleas; contact of commensal
+    rodents and their fleas with sylvatic rodents may result in epizootic and epidemic
+    plague; handling of infected tissues; airborne droplets from humans or pets with
+    plague pneumonia; careless manipulation of laboratory cultures; person-to-person
+    transmission by human fleas.
+  ImageRight: {fileID: 0}

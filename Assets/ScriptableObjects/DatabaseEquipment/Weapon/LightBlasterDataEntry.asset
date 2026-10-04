@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa771f946998dab43a5177134c0f7790, type: 3}
+  m_Name: LightBlasterDataEntry
+  m_EditorClassIdentifier: 
+  EntryType: 0
+  Image: {fileID: 21300000, guid: f88c413baccf9a74992ed4f14aaa7086, type: 3}
+  ApplyImageTint: 0
+  ImageTint: {r: 0, g: 0, b: 0, a: 0}
+  Name: Light Blaster
+  EntrySubDetails:
+  - {fileID: 11400000, guid: 38d98f1ef6f0a034d96fe7cbcbadedac, type: 2}
+  - {fileID: 11400000, guid: ec9e799b86053734eb11ea8025dbc347, type: 2}
+  - {fileID: 11400000, guid: 9e0aa8b516d8b074db1267f6657eea3d, type: 2}

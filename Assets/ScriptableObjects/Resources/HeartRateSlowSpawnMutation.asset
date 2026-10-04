@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cee1065496d2a1f48b2e47c8b7bfaa59, type: 3}
+  m_Name: HeartRateSlowSpawnMutation
+  m_EditorClassIdentifier: 
+  ExecutionTime: 0
+  CureAfterExecution: 0
+  VacinateAfterCure: 0
+  ReinstateValuesAfterCure: 0
+  DelayCureByExecTime: 0
+  MutationDuration: 0
+  RandomiseExec: 0
+  ExecTimerMin: 0
+  ExecTimerMax: 0
+  MutationsToCureOnTrigger: []
+  MutationsToApplyOnTrigger: []
+  PrefabToSpawn: {fileID: 1417672524374338, guid: 9b476c2b39b9c014997ebc0a61b93516,
+    type: 2}
+  SpawnPosition: {x: 0, y: 0, z: 0}
+  SpawnRotation: {x: 0, y: 0, z: 0}
+  EntitySpawnLimit: 1

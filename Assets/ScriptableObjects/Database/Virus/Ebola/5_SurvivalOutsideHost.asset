@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4b28d3fbf2ceb44aa69c75a921f9e95, type: 3}
+  m_Name: 5_SurvivalOutsideHost
+  m_EditorClassIdentifier: 
+  ImageLeft: {fileID: 0}
+  Title: 'Survival Outside Host:'
+  Description: "Filoviruses have been reported capable to survive for weeks in blood
+    and can also survive on contaminated surfaces, particularly at low temperatures
+    (4\xB0C). Under West African climate conditions of 28\xB0C and 90% relative humidity,
+    ebolavirus can persist in dried human or non-human primate blood for 7 to 10 days.
+    One study could not recover any Ebolavirus from experimentally contaminated surfaces
+    (plastic, metal or glass) at room temperature."
+  ImageRight: {fileID: 0}

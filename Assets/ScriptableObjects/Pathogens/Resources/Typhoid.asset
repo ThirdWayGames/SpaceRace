@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c8d3326099632b4ea995154a3993dea, type: 3}
+  m_Name: Typhoid
+  m_EditorClassIdentifier: 
+  PathogenName: Typhoid
+  PathogenIcdCode: A01.0
+  Severity: 3
+  DeliveryType: 2
+  PathogenElements:
+  - {fileID: 11400000, guid: 509ad6622dd3bf640ba4529754a09591, type: 2}
+  - {fileID: 11400000, guid: 14d9f9cdb2a97e64298a8648107916d7, type: 2}
+  - {fileID: 11400000, guid: bfab6c445b6bd7c4cbdca5be1d97c4d1, type: 2}
+  AntidotalElements:
+  - {fileID: 11400000, guid: d1be707098110134c866fa4b9ef9d46c, type: 2}
+  - {fileID: 11400000, guid: abc8a9a6b113411488dbf61b16ed881b, type: 2}
+  - {fileID: 11400000, guid: 18f4d95cef46c944796d5471d52aa7d0, type: 2}
+  SymptomMutations:
+  - {fileID: 11400000, guid: c0d65ebe01d2d6849b220222712aa6ae, type: 2}
+  - {fileID: 11400000, guid: 03e73aadcb2ccd24fa1aec8448a37f71, type: 2}
+  - {fileID: 11400000, guid: bc45ec3cd3fb25440b6a5e9e3f305eda, type: 2}
+  - {fileID: 11400000, guid: 30e4b3dc19cca5d4a9841773059e66c9, type: 2}
+  - {fileID: 11400000, guid: 131ec159d8a4e6140acf222b153460ac, type: 2}
+  - {fileID: 11400000, guid: 7f770ca8bed8cac449268371505c866c, type: 2}

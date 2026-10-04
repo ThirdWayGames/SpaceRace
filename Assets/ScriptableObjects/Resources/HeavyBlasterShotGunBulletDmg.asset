@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d348482d1cae2e44bd753d6e74c4d09, type: 3}
+  m_Name: HeavyBlasterShotGunBulletDmg
+  m_EditorClassIdentifier: 
+  ExecutionTime: 0
+  CureAfterExecution: 1
+  VacinateAfterCure: 0
+  ReinstateValuesAfterCure: 0
+  DelayCureByExecTime: 1
+  MutationDuration: 0
+  Repeatable: 0
+  TotalExecCount: 0
+  ComponentTypeToAffect: HealthComponent
+  MutateBelowZero: 1
+  ConstantValueAdjustment: 0
+  RunningValueAdjustment: -8

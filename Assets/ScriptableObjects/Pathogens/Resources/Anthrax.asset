@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c8d3326099632b4ea995154a3993dea, type: 3}
+  m_Name: Anthrax
+  m_EditorClassIdentifier: 
+  PathogenName: Anthrax
+  PathogenIcdCode: A22.1
+  Severity: 4
+  DeliveryType: 3
+  PathogenElements:
+  - {fileID: 11400000, guid: 509ad6622dd3bf640ba4529754a09591, type: 2}
+  - {fileID: 11400000, guid: 40c24c40889fc9142a1ae03e07b01c3a, type: 2}
+  - {fileID: 11400000, guid: bfab6c445b6bd7c4cbdca5be1d97c4d1, type: 2}
+  AntidotalElements:
+  - {fileID: 11400000, guid: 32124c7fffaecc24a9306d20c898c17b, type: 2}
+  - {fileID: 11400000, guid: 300a207a17a61f4449d045761cdc66db, type: 2}
+  - {fileID: 11400000, guid: 33c67ac021be04d4f942c1d2decfe2b1, type: 2}
+  SymptomMutations:
+  - {fileID: 11400000, guid: 03e73aadcb2ccd24fa1aec8448a37f71, type: 2}
+  - {fileID: 11400000, guid: 4f82bedfc4ba91c418f5eeca837a762c, type: 2}
+  - {fileID: 11400000, guid: d06a5bf351a23ed47a950975ad7cc5f6, type: 2}
+  - {fileID: 11400000, guid: c12fc02ac3641fd42bf40f14b3be1c79, type: 2}
+  - {fileID: 11400000, guid: 17d6312b28ae6824aa67514dbdf7aa61, type: 2}

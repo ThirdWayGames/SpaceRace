@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa771f946998dab43a5177134c0f7790, type: 3}
+  m_Name: AntibodyMedication
+  m_EditorClassIdentifier: 
+  EntryType: 2
+  Image: {fileID: 21300000, guid: 917addb3050f20a478b40a2969f2b933, type: 3}
+  ApplyImageTint: 0
+  ImageTint: {r: 0, g: 0, b: 0, a: 0}
+  Name: Antibody Medication
+  EntrySubDetails:
+  - {fileID: 11400000, guid: 33cd7e6940c68b84497cd29d82af27ff, type: 2}
+  - {fileID: 11400000, guid: bf7a87fada939ef43963a23cf44d1eb5, type: 2}
+  - {fileID: 11400000, guid: 14ffde68c678a4f42a71783fd0ac1b5f, type: 2}
+  - {fileID: 11400000, guid: 077f2d9ff28de9f46a224cc15281e86d, type: 2}
+  - {fileID: 11400000, guid: 5427006d090c27a4595efb297ac0c036, type: 2}
+  - {fileID: 11400000, guid: 74b4a788113681e4f876af7270211f3b, type: 2}

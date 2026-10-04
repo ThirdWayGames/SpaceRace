@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4a4e4f12b2afb040baaf88479c49b97, type: 3}
+  m_Name: DatabaseEquipment
+  m_EditorClassIdentifier: 
+  BacteriaEntries:
+  - {fileID: 11400000, guid: 8b552b9554874fd4f9430a0ff2143ecd, type: 2}
+  - {fileID: 11400000, guid: dfb4e4b85f97a8f47be7b735302fde3d, type: 2}
+  - {fileID: 11400000, guid: 5ffc4ddd8648d9141b8e8502f178d9ae, type: 2}
+  ViralEntries:
+  - {fileID: 11400000, guid: d6d5b7d60cb8be94daa2ab7403778afa, type: 2}
+  - {fileID: 11400000, guid: 477f0e03e16bddc47b3fd8c59a70b3bc, type: 2}
+  - {fileID: 11400000, guid: 33aa3e173e80a4b4fab914e34b66a531, type: 2}
+  - {fileID: 11400000, guid: 4e288ca525b58eb47a606c9c35db6519, type: 2}
+  TreatmentEntries:
+  - {fileID: 11400000, guid: da19894e338a95846848468b67f056c1, type: 2}
+  - {fileID: 11400000, guid: 61f71c137e43f8148a4bb73101de8a21, type: 2}

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abfa63cfcfa89d84eb1650e32866a67a, type: 3}
+  m_Name: VisionLoss
+  m_EditorClassIdentifier: 
+  ExecutionTime: 0
+  CureAfterExecution: 0
+  VacinateAfterCure: 0
+  ReinstateValuesAfterCure: 0
+  DelayCureByExecTime: 0
+  MutationDuration: 0
+  Repeatable: 0
+  TotalExecCount: 0
+  PropertyMutations:
+  - {fileID: 11400000, guid: 8a9ae96182644024abb0142b4317e6bd, type: 2}
+  - {fileID: 11400000, guid: b7617aaf7af754d43b81a836465bbfb1, type: 2}

@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88f38f4253546d845917f3f13eb39fbf, type: 3}
+  m_Name: Metronidazole
+  m_EditorClassIdentifier: 
+  Color: {r: 0.9529412, g: 0.58431375, b: 0.078431375, a: 1}
+  TextColor: {r: 0, g: 0, b: 0, a: 255}
+  Shape: {fileID: 21300000, guid: 97832ac64acea4942a7a4075d32c48a1, type: 3}
+  Type: Anti-Biotic
+  FriendlyName: 
+  Strength: 0.5

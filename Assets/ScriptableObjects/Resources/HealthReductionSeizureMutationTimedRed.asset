@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7ee84ebf9720c14aa76d6a0dddb9bef, type: 3}
+  m_Name: HealthReductionSeizureMutationTimedRed
+  m_EditorClassIdentifier: 
+  ExecutionTime: 0
+  CureAfterExecution: 1
+  VacinateAfterCure: 0
+  ReinstateValuesAfterCure: 0
+  DelayCureByExecTime: 0
+  MutationDuration: 0
+  RandomiseExec: 0
+  ExecTimerMin: 0
+  ExecTimerMax: 0
+  MutationsToCureOnTrigger: []
+  MutationsToApplyOnTrigger:
+  - {fileID: 11400000, guid: 5a9ee89fac1b8024bb1d8d914198b930, type: 2}
+  - {fileID: 11400000, guid: ac1aacc98408e4148af11d5cbf849b7b, type: 2}
+  - {fileID: 11400000, guid: fd7b42bd0ac0461449cf8aae64cd8672, type: 2}
+  - {fileID: 11400000, guid: ed075dcb14f432043a5e0f5a8ca4c2a7, type: 2}

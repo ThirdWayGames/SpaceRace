@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c299dafe5223b1f468ee6a7a5ca35770, type: 3}
+  m_Name: BluePlayer
+  m_EditorClassIdentifier: 
+  Stamina:
+    UseConstant: 1
+    ConstantValue: 100
+    Variable: {fileID: 0}
+  CurrentStamina:
+    UseConstant: 0
+    ConstantValue: 100
+    Variable: {fileID: 11400000, guid: d11be61930c985f44b6ad8eb2353d092, type: 2}
+  MaxRunningSpeed:
+    UseConstant: 1
+    ConstantValue: 3
+    Variable: {fileID: 0}
+  StaminaLossRate:
+    UseConstant: 1
+    ConstantValue: -5
+    Variable: {fileID: 0}
+  StaminaRefreshRate:
+    UseConstant: 1
+    ConstantValue: 10
+    Variable: {fileID: 0}
+  Health:
+    UseConstant: 1
+    ConstantValue: 75
+    Variable: {fileID: 0}
+  CurrentHealth:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: 5c41d4a0a1eaa0746845737fe7f59bd9, type: 2}

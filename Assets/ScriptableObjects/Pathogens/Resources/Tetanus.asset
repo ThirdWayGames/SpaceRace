@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c8d3326099632b4ea995154a3993dea, type: 3}
+  m_Name: Tetanus
+  m_EditorClassIdentifier: 
+  PathogenName: Tetanus
+  PathogenIcdCode: A35
+  Severity: 2
+  DeliveryType: 1
+  PathogenElements:
+  - {fileID: 11400000, guid: 3cf8ecac74448f44cb150f3d63fd14dc, type: 2}
+  - {fileID: 11400000, guid: a8fbab36e5738734198307d5847f69a9, type: 2}
+  - {fileID: 11400000, guid: 8d7a97bcc94458548a67af614588b21f, type: 2}
+  AntidotalElements:
+  - {fileID: 11400000, guid: 4c7553a64ed2dbc4ca251968122996cb, type: 2}
+  - {fileID: 11400000, guid: 18c191bf795ec2b4fb9a7b66b6f10538, type: 2}
+  - {fileID: 11400000, guid: 18f4d95cef46c944796d5471d52aa7d0, type: 2}
+  SymptomMutations:
+  - {fileID: 11400000, guid: 231f5d4ced684b8468a58cf29e4f2380, type: 2}
+  - {fileID: 11400000, guid: cf9e184592fdf424183aa7a795824d94, type: 2}
+  - {fileID: 11400000, guid: 17d6312b28ae6824aa67514dbdf7aa61, type: 2}
+  - {fileID: 11400000, guid: c5b01ef53b0b7444b8aa46b8e16f31ac, type: 2}

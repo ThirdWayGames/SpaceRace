@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7236f45d3e8089d48b429a3674cbf522, type: 3}
+  m_Name: TestPathogenLibValuesBlue
+  m_EditorClassIdentifier: 
+  TeamId: 1
+  CurablePathogens:
+  - {fileID: 11400000, guid: 2aa2196fb219683479a7e57c0bc0874c, type: 2}
+  KnownPathogens:
+  - {fileID: 11400000, guid: 8bbb1f01d6960f64c9d640794713f39b, type: 2}
+  - {fileID: 11400000, guid: c1fc09b3c3802014c91b9eb77423ae87, type: 2}
+  - {fileID: 11400000, guid: 0639d565b38d3af4793cbdfc68dd2866, type: 2}
+  - {fileID: 11400000, guid: 74dbd7215dd72924289c6660e6ecdacd, type: 2}
+  - {fileID: 11400000, guid: 2aa2196fb219683479a7e57c0bc0874c, type: 2}
+  - {fileID: 11400000, guid: ef54662e86bc4ef489e4a4509c989c07, type: 2}
+  - {fileID: 11400000, guid: 6e1754eda4e7406429f706412208fc1b, type: 2}
+  - {fileID: 11400000, guid: 3a24ab99d807d1042ab1576d8e9f4e4e, type: 2}
+  - {fileID: 11400000, guid: 6ca21adaa4027ba4dbdaa631803240a1, type: 2}
+  - {fileID: 11400000, guid: f0a3e952ce71e014c9c95c20e2c37563, type: 2}
+  - {fileID: 11400000, guid: 9869fc5bfacd54f4088dbe217d0d4cfb, type: 2}
+  - {fileID: 11400000, guid: de64ff6220f0d9247a211b9a1b8eeeed, type: 2}
+  - {fileID: 11400000, guid: ef81041db8cb8884f890c1839b1d9fdf, type: 2}
+  - {fileID: 11400000, guid: cb10d227a0fd7334db35223b54014764, type: 2}
+  - {fileID: 11400000, guid: 47913cd2c0158d842b64a32278ea396f, type: 2}
+  - {fileID: 11400000, guid: bc0be1fcd990a6949af8fc3cf11d0e03, type: 2}
+  - {fileID: 11400000, guid: d14b5a972cee6114cb8e5bdaa7995cd1, type: 2}

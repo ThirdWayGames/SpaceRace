@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa771f946998dab43a5177134c0f7790, type: 3}
+  m_Name: SupportiveTherapy
+  m_EditorClassIdentifier: 
+  EntryType: 2
+  Image: {fileID: 21300000, guid: 00178adedcb7b1e478f09d22f94c62a8, type: 3}
+  ApplyImageTint: 0
+  ImageTint: {r: 0, g: 0, b: 0, a: 0}
+  Name: Supportive Therapy
+  EntrySubDetails:
+  - {fileID: 11400000, guid: 5b298cb029887be409005d5cde0bcc17, type: 2}
+  - {fileID: 11400000, guid: d68bdf41fdca0144d99ed0ce2bb11273, type: 2}
+  - {fileID: 11400000, guid: 2e0b9efb8e6663d46919aa230a6fb994, type: 2}
+  - {fileID: 11400000, guid: c7fbb06a6e18aa449aafacb22848a901, type: 2}
+  - {fileID: 11400000, guid: 067739e11d8df3a4c8918a7afd2a566d, type: 2}
+  - {fileID: 11400000, guid: be73e34b6da5a804b806bf48f9e765be, type: 2}
+  - {fileID: 11400000, guid: f004f8a20a9100140956b317ff212fcc, type: 2}

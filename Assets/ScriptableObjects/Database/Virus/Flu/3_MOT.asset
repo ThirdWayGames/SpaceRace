@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4b28d3fbf2ceb44aa69c75a921f9e95, type: 3}
+  m_Name: 3_MOT
+  m_EditorClassIdentifier: 
+  ImageLeft: {fileID: 0}
+  Title: 'Mode Of Transmission:'
+  Description: '(Cloud and Fluid beam) Transmission of influenza in humans can occur
+    via respiratory infection by aerosols and droplets (from coughing and sneezing)
+    or from contact transmission from contaminated surfaces. Closed environment and
+    crowds favour transmission. Transmission of influenza virus from donors who are
+    shedding large amounts of virus can be infective for 2 to 8 hours via stainless
+    steel surfaces and for a few minutes via paper tissues. '
+  ImageRight: {fileID: 0}

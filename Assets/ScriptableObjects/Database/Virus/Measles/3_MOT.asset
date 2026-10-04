@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4b28d3fbf2ceb44aa69c75a921f9e95, type: 3}
+  m_Name: 3_MOT
+  m_EditorClassIdentifier: 
+  ImageLeft: {fileID: 0}
+  Title: 'Mode Of Transmission:'
+  Description: (Cloud and Fluid beam) Measles can be spread by respiratory droplets
+    and by direct contact with secretions from nose and throat of an infected person.
+    Direct contact is the primary mode of transmission, and airborne droplet and indirect
+    contact are less common modes of transmission.
+  ImageRight: {fileID: 0}

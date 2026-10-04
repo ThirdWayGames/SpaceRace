@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c8d3326099632b4ea995154a3993dea, type: 3}
+  m_Name: BloodTestPathogen
+  m_EditorClassIdentifier: 
+  PathogenName: BloodTestPathogen
+  Severity: 2
+  DeliveryType: 5
+  PathogenElements: []
+  AntidotalElements: []
+  SymptomMutations:
+  - {fileID: 11400000, guid: 03e73aadcb2ccd24fa1aec8448a37f71, type: 2}
+  - {fileID: 11400000, guid: f56cf00283e0ca34d83680ce0bdf65ea, type: 2}

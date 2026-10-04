@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4b28d3fbf2ceb44aa69c75a921f9e95, type: 3}
+  m_Name: 1_Definition
+  m_EditorClassIdentifier: 
+  ImageLeft: {fileID: 0}
+  Title: Definition
+  Description: Antibiotics are employed against bacterial as well as some parasitic
+    infections. They have either a bacteriostatic or a bactericidal effect and can
+    be effective against a small group of bacteria (narrow-spectrum) or a wide range
+    of pathogens (broad-spectrum). Most antibiotics work by inhibiting cell wall synthesis,
+    protein synthesis, or nucleic acid synthesis in bacteria. Common side effects
+    include allergies and cross-reacting hypersensitivities, as well as nephrotoxic
+    and hepatotoxic effects.
+  ImageRight: {fileID: 0}

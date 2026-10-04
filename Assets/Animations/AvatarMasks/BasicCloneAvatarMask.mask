@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: BasicCloneAvatarMask
+  m_Mask: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 1
+  - m_Path: Armature
+    m_Weight: 0
+  - m_Path: Armature/RigBone
+    m_Weight: 0
+  - m_Path: Armature/RigBone/Arm.L.IK
+    m_Weight: 1
+  - m_Path: Armature/RigBone/Arm.L.IK/Elbow.L.Pole
+    m_Weight: 1
+  - m_Path: Armature/RigBone/Arm.L.IK/Elbow.L.Pole/Elbow.L.Pole_end
+    m_Weight: 1
+  - m_Path: Armature/RigBone/Arm.R.IK
+    m_Weight: 1
+  - m_Path: Armature/RigBone/Arm.R.IK/Elbow.R.Pole
+    m_Weight: 1
+  - m_Path: Armature/RigBone/Arm.R.IK/Elbow.R.Pole/Elbow.R.Pole_end
+    m_Weight: 1
+  - m_Path: Armature/RigBone/body
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/arm.upper.l
+    m_Weight: 1
+  - m_Path: Armature/RigBone/body/arm.upper.l/arm.upper.l.001
+    m_Weight: 1
+  - m_Path: Armature/RigBone/body/arm.upper.l/arm.upper.l.001/arm.upper.l.001_end
+    m_Weight: 1
+  - m_Path: Armature/RigBone/body/arm.upper.r
+    m_Weight: 1
+  - m_Path: Armature/RigBone/body/arm.upper.r/arm.lower.r
+    m_Weight: 1
+  - m_Path: Armature/RigBone/body/arm.upper.r/arm.lower.r/arm.lower.r_end
+    m_Weight: 1
+  - m_Path: Armature/RigBone/body/leg.upper.l
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/leg.upper.l/leg.lower.l
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/leg.upper.l/leg.lower.l/foot.l
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/leg.upper.l/leg.lower.l/foot.l/foot.l_end
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/leg.upper.r
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/leg.upper.r/leg.lower.r
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/leg.upper.r/leg.lower.r/foot.r
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/leg.upper.r/leg.lower.r/foot.r/foot.r_end
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/neck
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/neck/head
+    m_Weight: 0
+  - m_Path: Armature/RigBone/body/neck/head/head_end
+    m_Weight: 0
+  - m_Path: Armature/RigBone/head.IK
+    m_Weight: 0
+  - m_Path: Armature/RigBone/head.IK/head.IK_end
+    m_Weight: 0
+  - m_Path: Armature/RigBone/leg.lower.l.IK
+    m_Weight: 0
+  - m_Path: Armature/RigBone/leg.lower.l.IK/Knee.L.Pole
+    m_Weight: 0
+  - m_Path: Armature/RigBone/leg.lower.l.IK/Knee.L.Pole/Knee.L.Pole_end
+    m_Weight: 0
+  - m_Path: Armature/RigBone/leg.lower.r.IK
+    m_Weight: 0
+  - m_Path: Armature/RigBone/leg.lower.r.IK/Knee.R.Pole
+    m_Weight: 0
+  - m_Path: Armature/RigBone/leg.lower.r.IK/Knee.R.Pole/Knee.R.Pole_end
+    m_Weight: 0
+  - m_Path: Camera
+    m_Weight: 0
+  - m_Path: Lamp
+    m_Weight: 0
+  - m_Path: LeftLeg
+    m_Weight: 0

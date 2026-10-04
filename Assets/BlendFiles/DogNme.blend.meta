@@ -1,0 +1,204 @@
+fileFormatVersion: 2
+guid: 783365e6fb1c7034485d75311065ceb5
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Armature
+    100002: ArmLower
+    100004: ArmLower_001
+    100006: ArmUpper_l
+    100008: ArmUpper_r
+    100010: Body
+    100012: Bone_023
+    100014: Bone_024
+    100016: Bone_025
+    100018: Bone_026
+    100020: Collar
+    100022: Collar_001
+    100024: //RootNode
+    100026: Finger1
+    100028: Finger1_001
+    100030: Finger2
+    100032: Finger2_001
+    100034: Finger2Knucle
+    100036: Finger2Knucle_001
+    100038: Finger3
+    100040: Finger3_001
+    100042: Finger3Knucle
+    100044: Finger3Knucle_001
+    100046: Foot_002
+    100048: Foot_l
+    100050: Foot_r
+    100052: Foot_r_001
+    100054: FootCtrl_r
+    100056: Hand
+    100058: Hand_001
+    100060: HandCtrl_l
+    100062: HandCtrl_r
+    100064: Head
+    100066: HeelRoll_r
+    100068: LegLower
+    100070: LegLower_001
+    100072: Neck
+    100074: RootBone
+    100076: SpineLower
+    100078: SpineLower_IK
+    100080: SpineMid
+    100082: SpineUpper
+    100084: Toe1
+    100086: Toe1_001
+    100088: Toe2
+    100090: Toe2_001
+    100092: Toe2Knuckle
+    100094: Toe2Knuckle_001
+    100096: Toe3
+    100098: Toe3_001
+    100100: Toe3Knuckle
+    100102: Toe3Knuckle_001
+    100104: Hand_002
+    100106: Hand_003
+    400000: Armature
+    400002: ArmLower
+    400004: ArmLower_001
+    400006: ArmUpper_l
+    400008: ArmUpper_r
+    400010: Body
+    400012: Bone_023
+    400014: Bone_024
+    400016: Bone_025
+    400018: Bone_026
+    400020: Collar
+    400022: Collar_001
+    400024: //RootNode
+    400026: Finger1
+    400028: Finger1_001
+    400030: Finger2
+    400032: Finger2_001
+    400034: Finger2Knucle
+    400036: Finger2Knucle_001
+    400038: Finger3
+    400040: Finger3_001
+    400042: Finger3Knucle
+    400044: Finger3Knucle_001
+    400046: Foot_002
+    400048: Foot_l
+    400050: Foot_r
+    400052: Foot_r_001
+    400054: FootCtrl_r
+    400056: Hand
+    400058: Hand_001
+    400060: HandCtrl_l
+    400062: HandCtrl_r
+    400064: Head
+    400066: HeelRoll_r
+    400068: LegLower
+    400070: LegLower_001
+    400072: Neck
+    400074: RootBone
+    400076: SpineLower
+    400078: SpineLower_IK
+    400080: SpineMid
+    400082: SpineUpper
+    400084: Toe1
+    400086: Toe1_001
+    400088: Toe2
+    400090: Toe2_001
+    400092: Toe2Knuckle
+    400094: Toe2Knuckle_001
+    400096: Toe3
+    400098: Toe3_001
+    400100: Toe3Knuckle
+    400102: Toe3Knuckle_001
+    400104: Hand_002
+    400106: Hand_003
+    2100000: unnamed
+    2100002: Material__Untitled
+    4300000: Body
+    7400000: Default Take
+    7400002: ArmatureAction
+    9500000: //RootNode
+    13700000: Body
+    2186277476908879412: ImportLogs
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

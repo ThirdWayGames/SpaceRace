@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa771f946998dab43a5177134c0f7790, type: 3}
+  m_Name: BacterialGastroenteritisDataEntry
+  m_EditorClassIdentifier: 
+  EntryType: 0
+  Image: {fileID: 21300000, guid: 809614011db244e49873d00aeaf0fa22, type: 3}
+  ApplyImageTint: 0
+  ImageTint: {r: 0, g: 0, b: 0, a: 0}
+  Name: Bacterial Gastroenteritis
+  EntrySubDetails:
+  - {fileID: 11400000, guid: 96a0ac058f79a9f4fa84a2b77e149c53, type: 2}
+  - {fileID: 11400000, guid: 1eb52d11edc6c934ebc866d6d155cd60, type: 2}
+  - {fileID: 11400000, guid: e40392f9a0f4be248871776c1606f955, type: 2}
+  - {fileID: 11400000, guid: 505ed5ee7a082aa478b60310c808c492, type: 2}
+  - {fileID: 11400000, guid: 406fc4c0799701847bb7b428c339eada, type: 2}
+  - {fileID: 11400000, guid: 1f8af229b56a1af4b87899220467ef99, type: 2}
+  - {fileID: 11400000, guid: b3d0b72ae1a4a60478f16d4b9ba9009f, type: 2}
+  - {fileID: 11400000, guid: 1d95ba281c6031d49922f9b2044ea535, type: 2}
