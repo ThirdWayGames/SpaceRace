@@ -43,7 +43,7 @@ namespace Assets.Scripts.GameObjects
                 // Turn the flashlight on.
                 if (PhotonNetwork.inRoom)
                 {
-                    GetComponent<PhotonView>().RPC("ToggleFlashLight", PhotonNetworkSettings.DefaultRPCNetworkTarget);
+                    GetComponent<PhotonView>().RPC("ToggleFlashLight", PhotonNetworkSettings.EventTarget);
                 }
                 else
                 {

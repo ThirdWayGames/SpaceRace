@@ -53,7 +53,7 @@ public class EntitySpawnConsole : AccessConsole3D, IConsole
             else
             {
                 // Despawn the spawned entity over the network.
-                this.photonView.RPC("DestroyLocalEntity", PhotonNetworkSettings.DefaultRPCNetworkTarget, null);
+                this.photonView.RPC("DestroyLocalEntity", PhotonNetworkSettings.EventTarget, null);
             }
         }
         else

@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using ExitGames.Client.Photon;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class ShipManager : Photon.MonoBehaviour 
+public class ShipManager : Photon.PunBehaviour 
 {
+    public const string AlarmStateKey = "AlarmActive";
     /// <summary>
     /// The power level - Float between 0 and 1 that indicates the percentage of power the ship has.
     /// </summary>
@@ -34,6 +36,7 @@ public class ShipManager : Photon.MonoBehaviour
 
             //Sets this to not be destroyed when reloading scene
             DontDestroyOnLoad(gameObject);
+            ApplyAlarmFromRoom();
         }
         //If instance already exists and it's not this:
         else if (instance != this)
@@ -56,13 +59,39 @@ public class ShipManager : Photon.MonoBehaviour
     [PunRPC]
     public void RaiseAlarm()
     {
-        AlarmStateActive = true;
+        ApplyAlarmState(true);
     }
 
     [PunRPC]
     public void CancelAlarm()
     {
-        AlarmStateActive = false;
+        ApplyAlarmState(false);
+    }
+
+    public void ApplyAlarmState(bool active)
+    {
+        AlarmStateActive = active;
+    }
+
+    public override void OnPhotonCustomRoomPropertiesChanged(Hashtable propertiesThatChanged)
+    {
+        if (propertiesThatChanged != null && propertiesThatChanged.ContainsKey(AlarmStateKey))
+        {
+            ApplyAlarmState((bool)propertiesThatChanged[AlarmStateKey]);
+        }
+    }
+
+    void ApplyAlarmFromRoom()
+    {
+        if (!PhotonNetwork.inRoom || PhotonNetwork.room == null || PhotonNetwork.room.CustomProperties == null)
+        {
+            return;
+        }
+
+        if (PhotonNetwork.room.CustomProperties.ContainsKey(AlarmStateKey))
+        {
+            ApplyAlarmState((bool)PhotonNetwork.room.CustomProperties[AlarmStateKey]);
+        }
     }
 
     // Update is called once per frame

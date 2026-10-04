@@ -36,7 +36,7 @@ public class ForceBarrierManager : PunBehaviour
                 // Shut it off.
                 if (PhotonNetwork.inRoom)
                 {
-                    photonView.RPC("RemoveConsoleBarrier", PhotonNetworkSettings.DefaultRPCNetworkTarget, new object[] { barrierToShutOff.gameObject.name });
+                    photonView.RPC("RemoveConsoleBarrier", PhotonNetworkSettings.EventTarget, new object[] { barrierToShutOff.gameObject.name });
                 }
                 else
                 {
@@ -108,7 +108,7 @@ public class ForceBarrierManager : PunBehaviour
 
             if (PhotonNetwork.inRoom)
             {
-                photonView.RPC("RemoveForceBarrier", PhotonNetworkSettings.DefaultRPCNetworkTarget, new object[] { barrierToShutOff.gameObject.name });
+                photonView.RPC("RemoveForceBarrier", PhotonNetworkSettings.EventTarget, new object[] { barrierToShutOff.gameObject.name });
             }
             else
             {

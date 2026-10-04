@@ -36,6 +36,8 @@ namespace Assets
         protected Vector3 MiniMapSmallScale;
 
         protected float MiniMapSmallCamSize;
+
+        int lastBroadcastSeconds = int.MinValue;
         
         public CanvasRenderer PowerCoreHealthPanel;
         
@@ -320,9 +322,21 @@ namespace Assets
                 {
                     // Calculate the remaining time based on the current time since game start.
                     var secondsRemaining = ((IntVariable)PrevGameCompletionTime).Value - (int)Time.timeSinceLevelLoad;
+                    if (secondsRemaining == lastBroadcastSeconds)
+                    {
+                        return;
+                    }
 
+                    lastBroadcastSeconds = secondsRemaining;
                     var photonView = this.GetComponent<PhotonView>();
-                    PhotonNetwork.RPC(photonView, "UpdateTimeRemaining", PhotonNetworkSettings.DefaultRPCNetworkTarget, false, new object[] { secondsRemaining });
+                    if (photonView != null && PhotonNetwork.inRoom)
+                    {
+                        PhotonNetwork.RPC(photonView, "UpdateTimeRemaining", PhotonNetworkSettings.EventTarget, false, new object[] { secondsRemaining });
+                    }
+                    else
+                    {
+                        UpdateTimeRemaining(secondsRemaining);
+                    }
                 }
             }
 

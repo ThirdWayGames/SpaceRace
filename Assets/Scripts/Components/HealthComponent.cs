@@ -23,6 +23,11 @@ namespace Assets.Scripts.Components
 
         public void TriggerDeathEventCallBacks()
         {
+            if (!OwnsDeathSideEffects())
+            {
+                return;
+            }
+
             if (!RagDollSpawned)
             {
                 // Instantiate the ragdoll.
@@ -140,6 +145,27 @@ namespace Assets.Scripts.Components
                 // Execute the script
                 onClonedDeathScript.OnCloneDeath(gameObject);
             }
+        }
+
+        bool OwnsDeathSideEffects()
+        {
+            if (!PhotonNetwork.inRoom)
+            {
+                return true;
+            }
+
+            var view = GetComponent<PhotonView>();
+            if (view == null)
+            {
+                view = GetComponentInParent<PhotonView>();
+            }
+
+            if (view == null)
+            {
+                return true;
+            }
+
+            return view.isMine;
         }
     }
 }

@@ -31,7 +31,7 @@ public class Pickup3D : Photon.MonoBehaviour, IPickup
                     // Destroy the current object.
                     if (PhotonNetwork.inRoom)
                     {
-                        this.photonView.RPC("DestroyMe", PhotonNetworkSettings.DefaultRPCNetworkTarget);
+                        this.photonView.RPC("DestroyMe", PhotonNetworkSettings.EventTarget);
                     }
                     else
                     {

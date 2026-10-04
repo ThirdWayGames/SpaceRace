@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/_Scenes/Missions/SpaceStationPve.unity
     guid: 437b039fd9bbf9746a9534411bfe8282
   - enabled: 1
+    path: Assets/_Scenes/Missions/ShipBoardingPvp.unity
+    guid: da405f0d4bcad5344b065948c1795ac8
+  - enabled: 1
     path: Assets/_Scenes/MiniGames/DataCache.unity
     guid: fe2399b95d0b7b34b9f25935fe049f98
   - enabled: 1

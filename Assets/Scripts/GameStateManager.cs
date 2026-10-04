@@ -34,11 +34,14 @@ public class GameStateManager : Photon.PunBehaviour
     {
         var gameOver = false;
         var winningTeam = string.Empty;
+        var winningTeamId = 0;
 
         // Determine if the game is over and who has won.
+        // Team 1 is red, team 2 is blue. The core that is still alive wins.
         if (RedCoreHealthComponent.CurrentValue <= 0 || BlueCoreHealthComponent.CurrentValue <= 0)
         {
-            winningTeam = RedCoreHealthComponent.CurrentValue > 0 ? "RED" : "BLUE";
+            winningTeamId = RedCoreHealthComponent.CurrentValue > 0 ? 1 : 2;
+            winningTeam = winningTeamId == 1 ? "RED" : "BLUE";
             gameOver = true;
         } 
 
@@ -52,23 +55,9 @@ public class GameStateManager : Photon.PunBehaviour
 
         // if you are the master client and the lobbyManger is null (which means we are in a game and not the lobby)
         var lobbyManager = FindObjectOfType<LobbyManager>();
-        if (PhotonNetwork.isMasterClient && lobbyManager == null)
+        if (PhotonNetwork.isMasterClient && lobbyManager == null && gameOver && GameManager3D.instance != null)
         {
-            // Determine if the game is over.
-            if (gameOver)
-            {
-                // If we are in a network room
-                if (PhotonNetwork.inRoom)
-                {
-                    // Network end the game.
-                    GameManager3D.instance.GetComponent<PhotonView>().RPC("EndGame", PhotonNetworkSettings.DefaultRPCNetworkTarget, 1);
-                }
-                else
-                {
-                    // Local end the game.
-                    GameManager3D.instance.EndGame(1);
-                }
-            }
+            GameManager3D.instance.RequestMatchEnd(winningTeamId);
         }
     }
 }
