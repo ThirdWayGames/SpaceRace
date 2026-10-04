@@ -1,9 +1,11 @@
-﻿using System.Security;
+﻿using ExitGames.Client.Photon;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerReadyInfo : Photon.MonoBehaviour
 {
+    public const string PlayerReadyKey = "PlayerReady";
+
     public PhotonPlayer Player;
     public Button PlayerReadyButton;
     public Sprite ReadyStateSprite;
@@ -22,6 +24,7 @@ public class PlayerReadyInfo : Photon.MonoBehaviour
             MasterClientImg.enabled = Player.IsMasterClient;
 
             SetName(Player.NickName);
+            ApplyReadyState(IsPlayerReady(Player));
 
             // If I am the master client and the other player is not.
             MakeMasterClientButton.SetActive(!Player.IsMasterClient && PhotonNetwork.isMasterClient);
@@ -34,7 +37,24 @@ public class PlayerReadyInfo : Photon.MonoBehaviour
 
     public void ToggleReadyState()
     {
-        this.photonView.RPC("SendNetworkReadyState", PhotonNetworkSettings.DefaultRPCNetworkTarget, new object[] { !PlayerReady });        
+        if (Player == null)
+        {
+            return;
+        }
+
+        var readyProps = new Hashtable();
+        readyProps[PlayerReadyKey] = !IsPlayerReady(Player);
+        Player.SetCustomProperties(readyProps);
+    }
+
+    public static bool IsPlayerReady(PhotonPlayer player)
+    {
+        if (player == null || player.CustomProperties == null || !player.CustomProperties.ContainsKey(PlayerReadyKey))
+        {
+            return false;
+        }
+
+        return (bool)player.CustomProperties[PlayerReadyKey];
     }
 
     /// <summary>
@@ -60,10 +80,8 @@ public class PlayerReadyInfo : Photon.MonoBehaviour
         }
     }
 
-    [PunRPC]
-    public void SendNetworkReadyState(bool state)
+    public void ApplyReadyState(bool state)
     {
-        // Set the player ready state.
         PlayerReady = state;
 
         PlayerReadyButton.GetComponent<Image>().sprite = PlayerReady

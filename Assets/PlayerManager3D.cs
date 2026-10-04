@@ -61,6 +61,12 @@ public class PlayerManager3D : Photon.MonoBehaviour
 
     protected int calculatedDeathCost = 0;
 
+    bool spawnRequested = false;
+
+    bool spawnFailed = false;
+
+    bool spawnRpcSent = false;
+
     public void SetLocalPlayer(GameObject localPlayer)
     {
         LocalPlayerInstance = localPlayer;
@@ -105,13 +111,16 @@ public class PlayerManager3D : Photon.MonoBehaviour
             else
             {
                 HideRespawnTimerFx();
-                SpawnPlayer();
-                /*SpawnButton.gameObject.SetActive(true);
-                SpawnButton.GetComponentInChildren<Text>().text = "Respawn";*/
+                if (LocalPlayerInstance == null && !spawnRequested && !spawnFailed)
+                {
+                    SpawnPlayer();
+                }
             }
         }
         else
         {
+            spawnRequested = false;
+            spawnFailed = false;
             // Hide the spawn button.
             if (SpawnButton != null)
             {
@@ -122,61 +131,151 @@ public class PlayerManager3D : Photon.MonoBehaviour
 
     public void SpawnPlayer()
     {
-        GameManager3D.ConsoleMsg("Spawning Player");
-        if (LocalPlayerInstance == null)
+        if (PlayerAlive || LocalPlayerInstance != null)
         {
-            GameManager3D.ConsoleMsg("No Local Player Instance Found");
-            var spawnLoc = GameManager3D.GetTeleportForCurrentPlayer();
+            spawnRequested = false;
+            return;
+        }
+
+        if (spawnRequested)
+        {
+            return;
+        }
+
+        spawnRequested = true;
+        RequestSpawn();
+    }
+
+    public void OnTeamAssigned()
+    {
+        if (!spawnRequested || spawnFailed || PlayerAlive || LocalPlayerInstance != null)
+        {
+            return;
+        }
+
+        RequestSpawn();
+    }
+
+    public void CompleteSpawn(int spawnLocIndex)
+    {
+        var locations = GameManager3D.instance != null ? GameManager3D.instance.SpawnLocations : null;
+        if (locations == null || spawnLocIndex < 0 || spawnLocIndex >= locations.Length || locations[spawnLocIndex] == null)
+        {
+            FailSpawn();
+            return;
+        }
+
+        FinishSpawn(locations[spawnLocIndex]);
+    }
+
+    public void FailSpawn()
+    {
+        spawnRequested = false;
+        spawnRpcSent = false;
+        spawnFailed = true;
+        GameManager3D.ConsoleMsg("Spawn request failed");
+    }
+
+    void RequestSpawn()
+    {
+        GameManager3D.ConsoleMsg("Spawning Player");
+        if (LocalPlayerInstance != null)
+        {
+            spawnRequested = false;
+            return;
+        }
+
+        if (GameManager3D.instance == null)
+        {
+            FailSpawn();
+            return;
+        }
+
+        if (!PhotonNetwork.inRoom)
+        {
+            var spawnLoc = GameManager3D.PickOfflineSpawn();
             if (spawnLoc == null)
             {
                 GameManager3D.ConsoleMsg("Spawn Loc was null");
+                FailSpawn();
                 return;
             }
 
-            GameManager3D.ConsoleMsg(string.Format("{0} Spawning", PhotonNetwork.inRoom ? "Network" : "Local"));
-            var marinePrefab = GameManager3D.instance.GetMarinePrefab();
-            var player = PhotonNetwork.inRoom ? PhotonNetwork.Instantiate(marinePrefab.name, spawnLoc.GetSpawnPos(), spawnLoc.GetSpawnRot(), 0) : Instantiate(marinePrefab, spawnLoc.GetSpawnPos(), spawnLoc.GetSpawnRot());
-            player.layer = LayerMask.NameToLayer("Player");
-
-            if (initialSpawnTime == 0f)
-            {
-                initialSpawnTime = Time.time;
-            }
-
-            // Get the player controller.
-            if (player != null)
-            {
-                var playerAnimController = player.GetComponentInChildren<PlayerAnimController>();
-                if (playerAnimController != null)
-                {
-                    playerAnimController.SetTeam(PhotonNetwork.inRoom ? (int) PhotonNetwork.player.CustomProperties[PlayerManager3D.PlayerTeamPrefKey] : 0);
-                }
-
-                var playerController = player.GetComponent<IPlayerController>();
-                if (playerController != null)
-                {
-                    if (ClonePathogenLoadout != null)
-                    {
-                        // Set the persistent pathogen state
-                        playerController.SetPathogenLoadout(ClonePathogenLoadout);
-                    } else
-                    {
-                        Debug.LogWarningFormat("No 'ClonePathogenLoadout' defined in the '{0}'", this.name);
-                    }
-
-                    // Set the spawn loc as used.
-                    spawnLoc.Spawned(playerController);
-
-                    // Tell the player manager that the player is alive.
-                    PlayerAlive = true;
-                }
-            }
-    
-            LocalPlayerInstance = player;
+            FinishSpawn(spawnLoc);
+            return;
         }
-        else
+
+        var teamId = GameManager3D.GetTeamId();
+        if (teamId == 0)
         {
-            GameManager3D.ConsoleMsg(string.Format("PlayerSpawn '{0}' already exists for player '{1}'", LocalPlayerInstance.name, PhotonNetwork.player.NickName));
+            GameManager3D.ConsoleMsg("No Local Player Instance Found");
+            GameManager3D.instance.AskMasterForTeam();
+            return;
+        }
+
+        if (spawnRpcSent || GameManager3D.instance.photonView == null)
+        {
+            if (GameManager3D.instance.photonView == null)
+            {
+                FailSpawn();
+            }
+            return;
+        }
+
+        spawnRpcSent = true;
+        GameManager3D.instance.photonView.RPC("RequestSpawnPoint", PhotonTargets.MasterClient, teamId);
+    }
+
+    void FinishSpawn(TeleportController spawnLoc)
+    {
+        GameManager3D.ConsoleMsg("No Local Player Instance Found");
+        if (spawnLoc == null)
+        {
+            FailSpawn();
+            return;
+        }
+
+        GameManager3D.ConsoleMsg(string.Format("{0} Spawning", PhotonNetwork.inRoom ? "Network" : "Local"));
+        var marinePrefab = GameManager3D.instance.GetMarinePrefab();
+        var player = PhotonNetwork.inRoom ? PhotonNetwork.Instantiate(marinePrefab.name, spawnLoc.GetSpawnPos(), spawnLoc.GetSpawnRot(), 0) : Instantiate(marinePrefab, spawnLoc.GetSpawnPos(), spawnLoc.GetSpawnRot());
+        player.layer = LayerMask.NameToLayer("Player");
+
+        if (initialSpawnTime == 0f)
+        {
+            initialSpawnTime = Time.time;
+        }
+
+        if (player != null)
+        {
+            var playerAnimController = player.GetComponentInChildren<PlayerAnimController>();
+            if (playerAnimController != null)
+            {
+                playerAnimController.SetTeam(GameManager3D.GetTeamId());
+            }
+
+            var playerController = player.GetComponent<IPlayerController>();
+            if (playerController != null)
+            {
+                if (ClonePathogenLoadout != null)
+                {
+                    playerController.SetPathogenLoadout(ClonePathogenLoadout);
+                }
+                else
+                {
+                    Debug.LogWarningFormat("No 'ClonePathogenLoadout' defined in the '{0}'", this.name);
+                }
+
+                spawnLoc.Spawned(playerController);
+                PlayerAlive = true;
+            }
+        }
+
+        LocalPlayerInstance = player;
+        spawnRequested = false;
+        spawnRpcSent = false;
+        if (player == null)
+        {
+            spawnFailed = true;
         }
     }
 
@@ -201,6 +300,9 @@ public class PlayerManager3D : Photon.MonoBehaviour
 
             // Tell the player manager that the player is not alive.
             PlayerAlive = false;
+            spawnRequested = false;
+            spawnFailed = false;
+            spawnRpcSent = false;
 
             // Increment the death count.
             PlayerDeathCount += 1;

@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class GameManager3D : Photon.PunBehaviour
 {
@@ -50,6 +51,20 @@ public class GameManager3D : Photon.PunBehaviour
 
     public int PlayerTeamOverride = 0;
 
+    public const string MatchPhaseKey = "MatchPhase";
+
+    public const string WinningTeamKey = "WinningTeam";
+
+    public const string MatchPhaseEnded = "Ended";
+
+    bool matchEnded = false;
+
+    bool winPanelShown = false;
+
+    bool lobbyReturnScheduled = false;
+
+    bool teamAssignmentRequested = false;
+
     private bool IsConsoleShowing = false;
 
     private int ConsoleMessageBacklog = 30;
@@ -63,124 +78,78 @@ public class GameManager3D : Photon.PunBehaviour
 
     public static void GrantConsoleAccess(AccessConsole3D consoleAccessed)
     {
-        // Get the ship manager to raise the alarm.
-        var shipManager = ShipManager.instance;
-        if (shipManager != null)
-        {
-            if (PhotonNetwork.inRoom)
-            {
-                ShipManager.instance.photonView.RPC("RaiseAlarm", PhotonNetworkSettings.DefaultRPCNetworkTarget);
-            }
-            else
-            {
-                ShipManager.instance.RaiseAlarm();
-            }
-        }
+        SetAlarmActive(true);
 
-        // Lock all other consoles.
         foreach (var accessConsole in instance.AccessConsoles.Where(x => x != consoleAccessed).ToList())
         {
-            if (PhotonNetwork.inRoom)
-            {
-                accessConsole.photonView.RPC("LockConsole", PhotonNetworkSettings.DefaultRPCNetworkTarget, false);
-            }
-            else
-            {
-                accessConsole.LockConsole(false);
-            }
+            accessConsole.RequestConsoleLock(true, false);
         }
     }
 
     public static void RevokeConsoleAccess(AccessConsole3D consoleAccessed)
     {
-        var shipManager = ShipManager.instance;
-        if (shipManager != null)
-        {
-            if (PhotonNetwork.inRoom)
-            {
-                ShipManager.instance.photonView.RPC("CancelAlarm", PhotonNetworkSettings.DefaultRPCNetworkTarget);
-            }
-            else
-            {
-                ShipManager.instance.CancelAlarm();
-            }
-        }
+        SetAlarmActive(false);
 
-        // Unlock all other consoles.
         foreach (var accessConsole in instance.AccessConsoles.Where(x => x != consoleAccessed).ToList())
         {
-            if (PhotonNetwork.inRoom)
-            {
-                accessConsole.photonView.RPC("UnlockConsole", PhotonNetworkSettings.DefaultRPCNetworkTarget);
-            }
-            else
-            {
-                accessConsole.UnlockConsole();
-            }
+            accessConsole.RequestConsoleLock(false, false);
         }
     }
 
-    public static TeleportController GetTeleportForCurrentPlayer()
+    public static void SetAlarmActive(bool active)
     {
-        TeleportController spawnLoc = null;
-        ConsoleMsg("GetTeleportForCurrentPlayer");
-        try
+        if (ShipManager.instance == null)
         {
-            var teamId = GetTeamId();
-            teamId = teamId == 0 ? UnityEngine.Random.Range(1, 2) : teamId;
-            ConsoleMsg(string.Format("Getting Spawn Location for team '{0}'", teamId));
-
-            var availableSpawnLocs = instance.SpawnLocations.Where(x => x.IsAvailable() && x.TeamId == teamId).ToArray();
-            spawnLoc = availableSpawnLocs[UnityEngine.Random.Range(0, availableSpawnLocs.Count())];
-            if (spawnLoc == null)
-            {
-                ConsoleMsg(string.Format("No spawn locations found for player '{0}'", teamId));
-            }
-
-            ConsoleMsg(string.Format("Spawn Loc found for team '{0}'", teamId));
-            var spawnLocIndex = instance.SpawnLocations.ToList().IndexOf(spawnLoc);
-            if (PhotonNetwork.inRoom && PhotonNetwork.player != null && instance.photonView != null)
-            {
-                instance.photonView.RPC("NetworkFlagSpawnInUse", PhotonNetworkSettings.DefaultRPCNetworkTarget, new object[] { spawnLocIndex });
-            }
-            else
-            {
-                instance.NetworkFlagSpawnInUse(spawnLocIndex);
-            }
-        }
-        catch (Exception ex)
-        {
-            ConsoleMsg(ex.Message);
+            return;
         }
 
-        return spawnLoc;
+        ShipManager.instance.ApplyAlarmState(active);
+        if (!PhotonNetwork.inRoom || PhotonNetwork.room == null)
+        {
+            return;
+        }
 
+        var props = new Hashtable();
+        props[ShipManager.AlarmStateKey] = active;
+        PhotonNetwork.room.SetCustomProperties(props);
+    }
+
+    public static TeleportController PickOfflineSpawn()
+    {
+        if (instance == null || instance.SpawnLocations == null)
+        {
+            return null;
+        }
+
+        var teamId = GetTeamId();
+        var availableSpawnLocs = instance.SpawnLocations.Where(x => x != null && x.IsAvailable() && (teamId == 0 || x.TeamId == teamId)).ToArray();
+        if (availableSpawnLocs.Length == 0)
+        {
+            return null;
+        }
+
+        return availableSpawnLocs[UnityEngine.Random.Range(0, availableSpawnLocs.Length)];
     }
 
     public static void ConsoleMsg(string msg, bool broadcast = true)
     {
-        if (instance != null)
+        Debug.Log(msg);
+        if (instance == null || instance.ConsolePanel == null)
         {
-            if (instance.ConsoleMessageCount + 1 > instance.ConsoleMessageBacklog)
-            {
-                instance.ClearConsole();
-                instance.ConsoleMessageCount = 0;
-            }
-            else
-            {
-                instance.ConsoleMessageCount += 1;
-            }
-
-            // Add the message to the console output.
-            if (instance.photonView != null && PhotonNetwork.inRoom && broadcast)
-            {
-                instance.photonView.RPC("NetworkConsoleMsg", PhotonNetworkSettings.DefaultRPCNetworkTarget, new object[] { string.Format("'{0}': {1}", PhotonNetwork.player != null ? PhotonNetwork.player.NickName : "No Player", msg) });
-            }
-            else
-            {
-                instance.NetworkConsoleMsg(msg);
-            }
+            return;
         }
+
+        if (instance.ConsoleMessageCount + 1 > instance.ConsoleMessageBacklog)
+        {
+            instance.ClearConsole();
+            instance.ConsoleMessageCount = 0;
+        }
+        else
+        {
+            instance.ConsoleMessageCount += 1;
+        }
+
+        instance.AppendConsoleMessage(msg);
     }
 
     public void Awake()
@@ -201,6 +170,8 @@ public class GameManager3D : Photon.PunBehaviour
         {
             devPlane.SetActive(false);
         }
+
+        ApplyEndedMatchFromRoom();
 
         /*if (PlayerManager3D.Get() != null)
         {
@@ -240,31 +211,20 @@ public class GameManager3D : Photon.PunBehaviour
             }
         }
 
-        if (ReturnToLobbyBtn != null)
+        if (ReturnToLobbyBtn != null && PhotonNetwork.player != null)
         {
             ReturnToLobbyBtn.gameObject.SetActive(PhotonNetwork.player.IsMasterClient);
         }
 
-        if (GameEndConditions.Any())
+        if (GameEndConditions.Any() && GameEndConditions.All(x => x))
         {
-            if (GameEndConditions.All(x => x))
-            {
-                // End the game.
-                if (PhotonNetwork.inRoom && this.photonView != null)
-                {
-                    this.photonView.RPC("EndGame", PhotonNetworkSettings.DefaultRPCNetworkTarget, 2);
-                }
-                else
-                {
-                    EndGame(0);
-                }
+            RequestMatchEnd(2);
 
-                // We have registered the game end, so reset all the game ending conditions
-                // We cant remove them or the WinStatSystem will replace them.
-                for(var i = 0; i < GameEndConditions.Count(); i++)
-                {
-                    GameEndConditions[i] = false;
-                }
+            // We have registered the game end, so reset all the game ending conditions
+            // We cant remove them or the WinStatSystem will replace them.
+            for(var i = 0; i < GameEndConditions.Count(); i++)
+            {
+                GameEndConditions[i] = false;
             }
         }
     }
@@ -337,7 +297,14 @@ public class GameManager3D : Photon.PunBehaviour
 
     public void ToggleCamClamp()
     {
-        instance.photonView.RPC("ToggleCameraClamp", PhotonNetworkSettings.DefaultRPCNetworkTarget);
+        if (PhotonNetwork.inRoom && instance.photonView != null)
+        {
+            instance.photonView.RPC("ToggleCameraClamp", PhotonNetworkSettings.EventTarget);
+        }
+        else
+        {
+            ToggleCameraClamp();
+        }
     }
 
     public void ClearSteamAchievement(string id)
@@ -351,94 +318,363 @@ public class GameManager3D : Photon.PunBehaviour
     }
     /*Console Commands: End*/
 
-    [PunRPC]
-    public void EndGame(int winningTeam)
+    public void RequestMatchEnd(int winningTeam)
     {
-        var winText = instance.GameStatePanel.GetComponent<Text>();
-        if (winText != null)
+        if (matchEnded || IsMatchPhaseEnded())
         {
-            ////winText.text = string.Format("{0} TEAM WINS!", winningTeam == 2 ? "RED" : "BLUE");
-            winText.enabled = true;
+            return;
+        }
+
+        if (PhotonNetwork.inRoom && !PhotonNetwork.isMasterClient)
+        {
+            return;
+        }
+
+        matchEnded = true;
+        ShowWinPanel(winningTeam);
+
+        if (!PhotonNetwork.inRoom || PhotonNetwork.room == null)
+        {
+            ScheduleReturnToLobby();
+            return;
+        }
+
+        var props = new Hashtable();
+        props[MatchPhaseKey] = MatchPhaseEnded;
+        props[WinningTeamKey] = winningTeam;
+        PhotonNetwork.room.SetCustomProperties(props);
+
+        if (photonView != null)
+        {
+            photonView.RPC("EndGame", PhotonNetworkSettings.EventTarget, winningTeam);
+        }
+
+        ScheduleReturnToLobby();
+    }
+
+    public void AskMasterForTeam()
+    {
+        if (teamAssignmentRequested || GetTeamId() != 0)
+        {
+            return;
+        }
+
+        teamAssignmentRequested = true;
+        if (!PhotonNetwork.inRoom || PhotonNetwork.player == null)
+        {
+            return;
         }
 
         if (PhotonNetwork.isMasterClient)
         {
-            if (PrevGameCompletionTime != null)
+            LobbyManager.AssignTeamId(PhotonNetwork.player);
+            if (GetTeamId() != 0)
             {
-                // Store the time it took to win the game.
-                ((IntVariable)PrevGameCompletionTime).Value = (int)Time.timeSinceLevelLoad;
+                teamAssignmentRequested = false;
+                var playerManager = FindObjectOfType<PlayerManager3D>();
+                if (playerManager != null)
+                {
+                    playerManager.OnTeamAssigned();
+                }
             }
+            return;
         }
 
-        StartCoroutine("TimedReturnToLobby");
+        if (photonView != null)
+        {
+            photonView.RPC("RequestTeamAssignment", PhotonTargets.MasterClient);
+        }
     }
 
-    protected static int GetTeamId()
+    [PunRPC]
+    public void EndGame(int winningTeam)
     {
-        if (instance.PlayerTeamOverride > 0)
+        if (IsMatchPhaseEnded() && winPanelShown)
+        {
+            return;
+        }
+
+        var team = winningTeam;
+        if (IsMatchPhaseEnded())
+        {
+            team = ReadWinningTeam(winningTeam);
+            ShowWinPanel(team);
+            matchEnded = true;
+            return;
+        }
+
+        ShowWinPanel(team);
+        matchEnded = true;
+
+        if (!PhotonNetwork.inRoom || !PhotonNetwork.isMasterClient || PhotonNetwork.room == null)
+        {
+            if (!PhotonNetwork.inRoom)
+            {
+                ScheduleReturnToLobby();
+            }
+            return;
+        }
+
+        var props = new Hashtable();
+        props[MatchPhaseKey] = MatchPhaseEnded;
+        props[WinningTeamKey] = team;
+        PhotonNetwork.room.SetCustomProperties(props);
+        ScheduleReturnToLobby();
+    }
+
+    [PunRPC]
+    public void RequestTeamAssignment(PhotonMessageInfo info)
+    {
+        if (!PhotonNetwork.isMasterClient || info.sender == null)
+        {
+            return;
+        }
+
+        LobbyManager.AssignTeamId(info.sender);
+    }
+
+    [PunRPC]
+    public void RequestSpawnPoint(int teamId, PhotonMessageInfo info)
+    {
+        if (!PhotonNetwork.isMasterClient || info.sender == null || photonView == null)
+        {
+            return;
+        }
+
+        if (SpawnLocations == null)
+        {
+            photonView.RPC("SpawnPointDenied", info.sender);
+            return;
+        }
+
+        var available = SpawnLocations.Where(x => x != null && x.IsAvailable() && x.TeamId == teamId).ToArray();
+        if (available.Length == 0)
+        {
+            photonView.RPC("SpawnPointDenied", info.sender);
+            return;
+        }
+
+        var spawnLoc = available[UnityEngine.Random.Range(0, available.Length)];
+        var index = Array.IndexOf(SpawnLocations, spawnLoc);
+        spawnLoc.Spawned(null);
+        photonView.RPC("SpawnPointGranted", info.sender, index);
+    }
+
+    [PunRPC]
+    public void SpawnPointGranted(int spawnLocIndex)
+    {
+        var playerManager = FindObjectOfType<PlayerManager3D>();
+        if (playerManager != null)
+        {
+            playerManager.CompleteSpawn(spawnLocIndex);
+        }
+    }
+
+    [PunRPC]
+    public void SpawnPointDenied()
+    {
+        var playerManager = FindObjectOfType<PlayerManager3D>();
+        if (playerManager != null)
+        {
+            playerManager.FailSpawn();
+        }
+    }
+
+    public override void OnPhotonPlayerPropertiesChanged(object[] playerAndUpdatedProps)
+    {
+        if (playerAndUpdatedProps == null || playerAndUpdatedProps.Length == 0)
+        {
+            return;
+        }
+
+        var player = playerAndUpdatedProps[0] as PhotonPlayer;
+        if (player == null || !player.IsLocal || player.CustomProperties == null)
+        {
+            return;
+        }
+
+        if (!player.CustomProperties.ContainsKey(PlayerManager3D.PlayerTeamPrefKey))
+        {
+            return;
+        }
+
+        teamAssignmentRequested = false;
+        var playerManager = FindObjectOfType<PlayerManager3D>();
+        if (playerManager != null)
+        {
+            playerManager.OnTeamAssigned();
+        }
+    }
+
+    public override void OnPhotonCustomRoomPropertiesChanged(Hashtable propertiesThatChanged)
+    {
+        if (propertiesThatChanged != null && propertiesThatChanged.ContainsKey(MatchPhaseKey))
+        {
+            ApplyEndedMatchFromRoom();
+        }
+    }
+
+    public static int GetTeamId()
+    {
+        if (instance != null && instance.PlayerTeamOverride > 0)
         {
             return instance.PlayerTeamOverride;
         }
 
-        var teamId = 0;
-        if (PhotonNetwork.player.CustomProperties != null && PhotonNetwork.player.CustomProperties.Count > 0)
+        if (!PhotonNetwork.inRoom || PhotonNetwork.player == null || PhotonNetwork.player.CustomProperties == null)
         {
-            teamId = (int)PhotonNetwork.player.CustomProperties[PlayerManager3D.PlayerTeamPrefKey];
-        }
-        else
-        {
-            // Assign to the team with the lowest number of players and set the player team.
-            var redTeamCount = PhotonNetwork.playerList.Where(x => x.ID != PhotonNetwork.player.ID).Count(x => PhotonNetwork.player.CustomProperties != null && PhotonNetwork.player.CustomProperties.Count > 0 && x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey] != null && ((int)x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey]) == 1);
-            var blueTeamCount = PhotonNetwork.playerList.Where(x => x.ID != PhotonNetwork.player.ID).Count(x => PhotonNetwork.player.CustomProperties != null && PhotonNetwork.player.CustomProperties.Count > 0 && x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey] != null && ((int)x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey]) == 2);
-
-            Debug.Log(string.Format("Total: {0} Red: {1}, Blue: {2}", PhotonNetwork.playerList.Length, redTeamCount, blueTeamCount));
-            teamId = redTeamCount < blueTeamCount ? 1 : 2;
-
-            // create 
-            var localPlayerCustomProps = new ExitGames.Client.Photon.Hashtable();
-
-            // Update the local custom props
-            localPlayerCustomProps[PlayerManager3D.PlayerTeamPrefKey] = teamId;
-
-            // Update the player custom props.
-            PhotonNetwork.player.SetCustomProperties(localPlayerCustomProps);
+            return 0;
         }
 
-        return teamId;
+        if (!PhotonNetwork.player.CustomProperties.ContainsKey(PlayerManager3D.PlayerTeamPrefKey))
+        {
+            return 0;
+        }
+
+        return (int)PhotonNetwork.player.CustomProperties[PlayerManager3D.PlayerTeamPrefKey];
     }
 
     protected void HaltGame()
     {
-        if (ShipManager.instance != null)
+        if (ShipManager.instance == null)
         {
-            var dontDestroyOnLoadObjects = ShipManager.instance.gameObject.scene.GetRootGameObjects();
-            foreach (var dontDestroyOnLoadObject in dontDestroyOnLoadObjects)
+            return;
+        }
+
+        var dontDestroyOnLoadObjects = ShipManager.instance.gameObject.scene.GetRootGameObjects();
+        var destroyed = new HashSet<int>();
+        foreach (var dontDestroyOnLoadObject in dontDestroyOnLoadObjects)
+        {
+            if (dontDestroyOnLoadObject == null)
             {
+                continue;
+            }
+
+            var views = dontDestroyOnLoadObject.GetComponentsInChildren<PhotonView>(true);
+            foreach (var view in views)
+            {
+                if (view == null || view.gameObject == null || !view.isMine)
+                {
+                    continue;
+                }
+
+                if (!destroyed.Add(view.gameObject.GetInstanceID()))
+                {
+                    continue;
+                }
+
                 if (PhotonNetwork.inRoom)
                 {
-                    ConsoleMsg(string.Format("Network Destroy {0} 'DontDestroy' game halted.", dontDestroyOnLoadObject.name));
-                    PhotonNetwork.Destroy(dontDestroyOnLoadObject);
+                    if (view.isSceneView)
+                    {
+                        continue;
+                    }
+
+                    ConsoleMsg(string.Format("Destroy owned view {0}.", view.name));
+                    PhotonNetwork.Destroy(view);
                 }
                 else
                 {
-                    ConsoleMsg(string.Format("Local Destroy {0} 'DontDestroy' game halted.", dontDestroyOnLoadObject.name));
-                    Destroy(dontDestroyOnLoadObject);
+                    ConsoleMsg(string.Format("Destroy owned view {0}.", view.name));
+                    Destroy(view.gameObject);
                 }
             }
         }
     }
 
-    [PunRPC]
-    protected void NetworkConsoleMsg(string msg)
+    void AppendConsoleMessage(string msg)
     {
-        Debug.Log(msg);
-        ConsolePanel.Find("MessageStream").GetComponentInChildren<Text>().text += string.Format("\n{0}", msg);
+        var messageStream = ConsolePanel.Find("MessageStream");
+        if (messageStream == null)
+        {
+            return;
+        }
+
+        var text = messageStream.GetComponentInChildren<Text>();
+        if (text != null)
+        {
+            text.text += string.Format("\n{0}", msg);
+        }
     }
 
-    [PunRPC]
-    protected void NetworkFlagSpawnInUse(int spawnLocIndex)
+    void ShowWinPanel(int winningTeam)
     {
-        instance.SpawnLocations[spawnLocIndex].Spawned(null);
+        winPanelShown = true;
+        if (GameStatePanel == null)
+        {
+            return;
+        }
+
+        var winText = GameStatePanel.GetComponent<Text>();
+        if (winText == null)
+        {
+            return;
+        }
+
+        if (winningTeam == 1 || winningTeam == 2)
+        {
+            winText.text = string.Format("{0} TEAM WINS!", winningTeam == 1 ? "RED" : "BLUE");
+        }
+
+        winText.enabled = true;
+
+        if ((PhotonNetwork.isMasterClient || !PhotonNetwork.inRoom) && PrevGameCompletionTime != null)
+        {
+            ((IntVariable)PrevGameCompletionTime).Value = (int)Time.timeSinceLevelLoad;
+        }
+    }
+
+    void ApplyEndedMatchFromRoom()
+    {
+        if (!IsMatchPhaseEnded() || winPanelShown)
+        {
+            return;
+        }
+
+        ShowWinPanel(ReadWinningTeam(0));
+        matchEnded = true;
+    }
+
+    static bool IsMatchPhaseEnded()
+    {
+        if (!PhotonNetwork.inRoom || PhotonNetwork.room == null || PhotonNetwork.room.CustomProperties == null)
+        {
+            return false;
+        }
+
+        return PhotonNetwork.room.CustomProperties.ContainsKey(MatchPhaseKey) &&
+               (string)PhotonNetwork.room.CustomProperties[MatchPhaseKey] == MatchPhaseEnded;
+    }
+
+    static int ReadWinningTeam(int fallback)
+    {
+        if (!PhotonNetwork.inRoom || PhotonNetwork.room == null || PhotonNetwork.room.CustomProperties == null)
+        {
+            return fallback;
+        }
+
+        if (!PhotonNetwork.room.CustomProperties.ContainsKey(WinningTeamKey))
+        {
+            return fallback;
+        }
+
+        return (int)PhotonNetwork.room.CustomProperties[WinningTeamKey];
+    }
+
+    void ScheduleReturnToLobby()
+    {
+        if (lobbyReturnScheduled)
+        {
+            return;
+        }
+
+        if (PhotonNetwork.inRoom && !PhotonNetwork.isMasterClient)
+        {
+            return;
+        }
+
+        lobbyReturnScheduled = true;
+        StartCoroutine(TimedReturnToLobby());
     }
 
     [PunRPC]

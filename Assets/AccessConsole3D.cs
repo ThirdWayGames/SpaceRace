@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts;
+using ExitGames.Client.Photon;
 using Assets.Scripts.Components;
 using Assets.Scripts.Interfaces;
 using Assets.Scripts.ScriptableObjects;
@@ -9,7 +10,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class AccessConsole3D : Photon.MonoBehaviour, IConsole
+public class AccessConsole3D : Photon.PunBehaviour, IConsole
 {
     public string AssociatedScene;
 
@@ -67,6 +68,8 @@ public class AccessConsole3D : Photon.MonoBehaviour, IConsole
 
     protected bool LockTimerActive = false;
 
+    bool unlockFired = false;
+
     public IPlayerController playerReference;
 
     public virtual void Awake()
@@ -85,6 +88,7 @@ public class AccessConsole3D : Photon.MonoBehaviour, IConsole
 
     public virtual void Start()
     {
+        ApplyLockFromRoom();
     }
 
     public virtual void Update()
@@ -99,17 +103,13 @@ public class AccessConsole3D : Photon.MonoBehaviour, IConsole
                 this.CurrentLockoutTime += Time.deltaTime;
             }
 
-            // If the lockout time has reached its limit.
-            if (this.CurrentLockoutTime >= this.LockOutTime)
+            // If the lockout time has reached its limit, publish the unlocked state once.
+            if (this.LockTimerActive && this.CurrentLockoutTime >= this.LockOutTime && !unlockFired)
             {
-                // Unlock the console.
-                if (PhotonNetwork.inRoom)
+                unlockFired = true;
+                if (!PhotonNetwork.inRoom || this.photonView == null || this.photonView.isMine)
                 {
-                    this.photonView.RPC("UnlockConsole", PhotonNetworkSettings.DefaultRPCNetworkTarget);
-                }
-                else
-                {
-                    UnlockConsole();
+                    RequestConsoleLock(false, false);
                 }
             }
         }
@@ -125,14 +125,7 @@ public class AccessConsole3D : Photon.MonoBehaviour, IConsole
         ConsoleResultValue = passMark;
         if (ConsoleResultValue <= 0)
         {
-            if (PhotonNetwork.inRoom)
-            {
-                this.photonView.RPC("LockConsole", PhotonNetworkSettings.DefaultRPCNetworkTarget, new object[] { true });
-            }
-            else
-            {
-                LockConsole();
-            }
+            RequestConsoleLock(true, true);
 
             FailureCount++;
         }
@@ -341,35 +334,81 @@ public class AccessConsole3D : Photon.MonoBehaviour, IConsole
         // If there are any completeion conditions
         if (LockOnSuccess)
         {
-            if (PhotonNetwork.inRoom && this.photonView != null)
-            {
-                this.photonView.RPC("LockConsole", PhotonNetworkSettings.DefaultRPCNetworkTarget, new object[] { false });
-            } else
-            {
-                LockConsole(false);
-            }
+            RequestConsoleLock(true, false);
+        }
+    }
+
+    public virtual void RequestConsoleLock(bool locked, bool withTimer)
+    {
+        ApplyLockState(locked, withTimer);
+
+        if (!PhotonNetwork.inRoom || PhotonNetwork.room == null)
+        {
+            return;
+        }
+
+        var props = new Hashtable();
+        props[LockPropertyKey()] = locked ? (withTimer ? 2 : 1) : 0;
+        PhotonNetwork.room.SetCustomProperties(props);
+    }
+
+    public override void OnPhotonCustomRoomPropertiesChanged(Hashtable propertiesThatChanged)
+    {
+        if (propertiesThatChanged != null && propertiesThatChanged.ContainsKey(LockPropertyKey()))
+        {
+            ApplyEncodedLockState((int)propertiesThatChanged[LockPropertyKey()]);
         }
     }
 
     [PunRPC]
     public virtual void LockConsole(bool withTimer = true)
     {
-        if (!Locked)
-        {
-            this.Locked = true;
-            this.LockTimerActive = withTimer;
-            ChangeMaterial();
-        }
+        ApplyLockState(true, withTimer);
     }
 
     [PunRPC]
     public virtual void UnlockConsole()
     {
-        if (Locked)
+        ApplyLockState(false, false);
+    }
+
+    protected virtual void ApplyLockState(bool locked, bool withTimer)
+    {
+        this.Locked = locked;
+        this.LockTimerActive = locked && withTimer;
+        this.CurrentLockoutTime = 0;
+        unlockFired = false;
+        ChangeMaterial();
+    }
+
+    string LockPropertyKey()
+    {
+        return "CL_" + gameObject.name;
+    }
+
+    void ApplyLockFromRoom()
+    {
+        if (!PhotonNetwork.inRoom || PhotonNetwork.room == null || PhotonNetwork.room.CustomProperties == null)
         {
-            this.Locked = false;
-            this.CurrentLockoutTime = 0;
-            ChangeMaterial();
+            return;
+        }
+
+        var key = LockPropertyKey();
+        if (PhotonNetwork.room.CustomProperties.ContainsKey(key))
+        {
+            ApplyEncodedLockState((int)PhotonNetwork.room.CustomProperties[key]);
+        }
+    }
+
+    void ApplyEncodedLockState(int encoded)
+    {
+        if (encoded <= 0)
+        {
+            ApplyLockState(false, false);
+        }
+        else
+        {
+            ApplyLockState(true, encoded == 2);
         }
     }
 
@@ -383,8 +422,18 @@ public class AccessConsole3D : Photon.MonoBehaviour, IConsole
 
     protected virtual bool AllowPlayerAccess()
     {
-        var playerTeamId = (int?)PhotonNetwork.player.CustomProperties[PlayerManager3D.PlayerTeamPrefKey];
-        return (!PhotonNetwork.inRoom || (playerTeamId != null && playerTeamId == this.AllowTeamAccess) || this.AllowTeamAccess == 0);
+        if (!PhotonNetwork.inRoom || this.AllowTeamAccess == 0)
+        {
+            return true;
+        }
+
+        if (PhotonNetwork.player == null || PhotonNetwork.player.CustomProperties == null || !PhotonNetwork.player.CustomProperties.ContainsKey(PlayerManager3D.PlayerTeamPrefKey))
+        {
+            return false;
+        }
+
+        var playerTeamId = (int)PhotonNetwork.player.CustomProperties[PlayerManager3D.PlayerTeamPrefKey];
+        return playerTeamId == this.AllowTeamAccess;
     }
 
     protected virtual bool PlayerMeetsAccessRestrictions(IPlayerController player)

@@ -107,7 +107,7 @@ public class EnemyPatrol : PunBehaviour
                             {
                                 if (PhotonNetwork.inRoom && !PhotonNetwork.isMasterClient)
                                 {
-                                    photonView.RPC("SwitchTeam", PhotonNetworkSettings.DefaultRPCNetworkTarget, new object[] { teamComponent.TeamIdentifier });
+                                    photonView.RPC("SwitchTeam", PhotonNetworkSettings.EventTarget, new object[] { teamComponent.TeamIdentifier });
                                 }
                                 else
                                 {

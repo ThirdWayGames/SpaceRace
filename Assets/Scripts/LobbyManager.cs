@@ -28,17 +28,20 @@ public class LobbyManager : Photon.PunBehaviour
 
     public void Start()
     {
+        if (PhotonNetwork.room == null)
+        {
+            return;
+        }
+
         PhotonNetwork.room.IsOpen = true;
         PlayersInLobby = new List<PhotonPlayer>();
-        // #Critical
-        // this makes sure we can use PhotonNetwork.LoadLevel() on the master client and all clients in the same room sync their level automatically
-        PhotonNetwork.automaticallySyncScene = true;
 
         if (PhotonNetwork.isMasterClient)
         {
             AssignTeamId(PhotonNetwork.player);
-            this.photonView.RPC("UpdatePlayerInfo", PhotonNetworkSettings.DefaultRPCNetworkTarget);
         }
+
+        UpdatePlayerInfo();
     }
 
     /// <summary>
@@ -63,12 +66,13 @@ public class LobbyManager : Photon.PunBehaviour
     /// </remarks>
     public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
     {
-        Debug.Log(string.Format("{0} joined the room for team {1}", newPlayer.NickName, newPlayer.CustomProperties[PlayerManager3D.PlayerTeamPrefKey]));
+        Debug.Log(string.Format("{0} joined the room for team {1}", newPlayer.NickName, TeamLabel(newPlayer)));
         if (PhotonNetwork.isMasterClient)
         {
             AssignTeamId(newPlayer);
-            this.photonView.RPC("UpdatePlayerInfo", PhotonNetworkSettings.DefaultRPCNetworkTarget);
         }
+
+        UpdatePlayerInfo();
     }
 
     /// <summary>
@@ -82,11 +86,8 @@ public class LobbyManager : Photon.PunBehaviour
     /// </remarks>
     public override void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer)
     {
-        Debug.Log(string.Format("{0} left the room from team {1}", otherPlayer.NickName, otherPlayer.CustomProperties[PlayerManager3D.PlayerTeamPrefKey]));
-        if (PhotonNetwork.isMasterClient)
-        {
-            this.photonView.RPC("UpdatePlayerInfo", PhotonNetworkSettings.DefaultRPCNetworkTarget);
-        }
+        Debug.Log(string.Format("{0} left the room from team {1}", otherPlayer.NickName, TeamLabel(otherPlayer)));
+        UpdatePlayerInfo();
     }
 
     /// <summary>
@@ -125,15 +126,28 @@ public class LobbyManager : Photon.PunBehaviour
         if (PhotonNetwork.isMasterClient)
         {
             PhotonNetwork.SetMasterClient(player);
-
-            // Clear the lobby and reload all players.
-            photonView.RPC("UpdatePlayerInfo", PhotonTargets.AllViaServer);
+            UpdatePlayerInfo();
         }
+    }
+
+    public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
+    {
+        UpdatePlayerInfo();
+    }
+
+    public override void OnPhotonPlayerPropertiesChanged(object[] playerAndUpdatedProps)
+    {
+        UpdatePlayerInfo();
     }
 
     public void SwitchTeam()
     {
         // Determine which team the player should be on by default.
+        if (PhotonNetwork.player == null || PhotonNetwork.player.CustomProperties == null || !PhotonNetwork.player.CustomProperties.ContainsKey(PlayerManager3D.PlayerTeamPrefKey))
+        {
+            return;
+        }
+
         var currentTeamId = (int)PhotonNetwork.player.CustomProperties[PlayerManager3D.PlayerTeamPrefKey];
 
         // Switch the team id.
@@ -145,15 +159,14 @@ public class LobbyManager : Photon.PunBehaviour
             // Assign the team id
             AssignTeamId(PhotonNetwork.player, teamId);
 
-            // Update the lobby for everyone.
-            photonView.RPC("UpdatePlayerInfo", PhotonNetworkSettings.DefaultRPCNetworkTarget);
+            UpdatePlayerInfo();
         }
     }
 
     public void RotateTeams()
     {
-        var teamOnePlayers = PhotonNetwork.playerList.Where(x => (int)x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey] == 1).ToList();
-        var teamTwoPlayers = PhotonNetwork.playerList.Where(x => (int)x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey] == 2).ToList();
+        var teamOnePlayers = PhotonNetwork.playerList.Where(x => ReadTeamId(x) == 1).ToList();
+        var teamTwoPlayers = PhotonNetwork.playerList.Where(x => ReadTeamId(x) == 2).ToList();
 
         // Switch the team one players
         foreach (var player in teamOnePlayers)
@@ -167,34 +180,35 @@ public class LobbyManager : Photon.PunBehaviour
             AssignTeamId(player, 1);
         }
 
-        // Update the lobby for everyone.
-        photonView.RPC("UpdatePlayerInfo", PhotonNetworkSettings.DefaultRPCNetworkTarget);
+        UpdatePlayerInfo();
     }
 
-    protected void AssignTeamId(PhotonPlayer player, int? teamId = null)
+    public static void AssignTeamId(PhotonPlayer player, int? teamId = null)
     {
+        if (player == null)
+        {
+            return;
+        }
+
         // If no team ID has been specified.
         if (!teamId.HasValue)
         {
+            if (player.CustomProperties != null && player.CustomProperties.ContainsKey(PlayerManager3D.PlayerTeamPrefKey))
+            {
+                return;
+            }
+
             // Determine which team the player should be on by default.
             var playerListExCurrent = PhotonNetwork.playerList.Where(x => x.ID != player.ID).ToList();
-            var redTeamCount =
-                playerListExCurrent.Count(
-                    x =>
-                        x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey] != null &&
-                        ((int) x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey]) == 1);
-            var blueTeamCount =
-                playerListExCurrent.Count(
-                    x =>
-                        x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey] != null &&
-                        ((int) x.CustomProperties[PlayerManager3D.PlayerTeamPrefKey]) == 2);
+            var redTeamCount = playerListExCurrent.Count(x => ReadTeamId(x) == 1);
+            var blueTeamCount = playerListExCurrent.Count(x => ReadTeamId(x) == 2);
 
             // Set the player prefs.
             teamId = redTeamCount < blueTeamCount ? 1 : 2;
         }
 
         // Get the custom properties from th player.
-        var localPlayerCustomProps = player.CustomProperties;
+        var localPlayerCustomProps = player.CustomProperties ?? new ExitGames.Client.Photon.Hashtable();
 
         // Update the local custom props
         localPlayerCustomProps[PlayerManager3D.PlayerTeamPrefKey] = teamId;
@@ -216,7 +230,7 @@ public class LobbyManager : Photon.PunBehaviour
             var playerInfoScript = playerInfo.GetComponent<PlayerReadyInfo>();
             playerInfoScript.SetName(newPlayer.NickName);
             playerInfoScript.SetPlayer(newPlayer);
-            playerInfo.transform.SetParent((int)newPlayer.CustomProperties[PlayerManager3D.PlayerTeamPrefKey] == 1 ? RedTeam.transform : BlueTeam.transform);
+            playerInfo.transform.SetParent(ReadTeamId(newPlayer) == 1 ? RedTeam.transform : BlueTeam.transform);
         }
     }
 
@@ -234,7 +248,7 @@ public class LobbyManager : Photon.PunBehaviour
 
     protected void RemovePlayer(PhotonPlayer newPlayer)
     {
-        var teamPanel = (int)newPlayer.CustomProperties[PlayerManager3D.PlayerTeamPrefKey] == 1 ? RedTeam.transform : BlueTeam.transform;
+        var teamPanel = ReadTeamId(newPlayer) == 1 ? RedTeam.transform : BlueTeam.transform;
 
         // Get the children, remove the parents.
         var playerInfoPane = teamPanel.gameObject.GetComponentsInChildren<PlayerReadyInfo>().ToList();
@@ -249,6 +263,16 @@ public class LobbyManager : Photon.PunBehaviour
     [PunRPC]
     public void UpdatePlayerInfo()
     {
+        if (PhotonNetwork.room == null || !PhotonNetwork.inRoom)
+        {
+            return;
+        }
+
+        if (PlayersInLobby == null)
+        {
+            PlayersInLobby = new List<PhotonPlayer>();
+        }
+
         // remove all players.
         RemoveTeam(1);
         RemoveTeam(2);
@@ -294,8 +318,38 @@ public class LobbyManager : Photon.PunBehaviour
         if (PhotonNetwork.isMasterClient)
         {
             PhotonNetwork.room.IsOpen = false;
-            PhotonNetwork.automaticallySyncScene = true;
-            PhotonNetwork.LoadLevel(SceneToLoad.ToString());
+            PhotonNetwork.LoadLevel(GetSceneName(SceneToLoad));
         }
+    }
+
+    public static string GetSceneName(SceneToLoadEnum scene)
+    {
+        switch (scene)
+        {
+            case SceneToLoadEnum.ShipBoardingPvp:
+                return "ShipBoardingPvp";
+            case SceneToLoadEnum.SpaceStationPve:
+                return "SpaceStationPve";
+            case SceneToLoadEnum.BioWarsTest:
+                return "BioWarsTest";
+            default:
+                return "SpaceStationPve";
+        }
+    }
+
+    static int ReadTeamId(PhotonPlayer player)
+    {
+        if (player == null || player.CustomProperties == null || !player.CustomProperties.ContainsKey(PlayerManager3D.PlayerTeamPrefKey))
+        {
+            return 0;
+        }
+
+        return (int)player.CustomProperties[PlayerManager3D.PlayerTeamPrefKey];
+    }
+
+    static string TeamLabel(PhotonPlayer player)
+    {
+        var teamId = ReadTeamId(player);
+        return teamId == 0 ? "unassigned" : teamId.ToString();
     }
  }

@@ -17,16 +17,9 @@ public class PunNetworkManagerAdvanced : PunNetworkManager, IPunNetworkManager
     [Tooltip("The UI label to inform the user that the connection is in progress.")]
     public GameObject ProgressLabel;
 
-    void Awake()
+    protected override void Awake()
     {
-        PhotonNetwork.autoJoinLobby = false;
-        PhotonNetwork.automaticallySyncScene = false;
-        PhotonNetwork.logLevel = LogLevel;
-
-        if (LocalSceneAutoJoin)
-        {
-            Connect();
-        }
+        base.Awake();
     }
 
     public void Start()

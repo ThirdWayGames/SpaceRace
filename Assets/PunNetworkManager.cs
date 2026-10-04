@@ -15,10 +15,10 @@ public class PunNetworkManager : Photon.PunBehaviour, IPunNetworkManager
 
     public bool SteamActive;
 
-    void Awake()
+    protected virtual void Awake()
     {
         PhotonNetwork.autoJoinLobby = false;
-        PhotonNetwork.automaticallySyncScene = false;
+        PhotonNetwork.automaticallySyncScene = true;
         PhotonNetwork.logLevel = LogLevel;
 
         if (LocalSceneAutoJoin)

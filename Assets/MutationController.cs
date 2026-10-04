@@ -100,6 +100,11 @@ public class MutationController : MonoBehaviour
     [PunRPC]
     public void AddPathogen(string pathogenTypeName, int teamId)
     {
+        if (!IsMutationAuthority())
+        {
+            return;
+        }
+
         // If I am not already immune to the mutation
         if (!PathogenImmunities.Any(x => x.StartsWith(pathogenTypeName)))
         {
@@ -115,6 +120,11 @@ public class MutationController : MonoBehaviour
     /// <param name="healBullet">The bullet that hit the player.</param>
     public void CurePathogens(int teamId)
     {
+        if (!IsMutationAuthority())
+        {
+            return;
+        }
+
         // Get the pathogen library for my team.
         var pathogenLib = FindObjectOfType<PathogenLibrary>();
         if (pathogenLib != null)
@@ -186,6 +196,11 @@ public class MutationController : MonoBehaviour
     [PunRPC]
     public void AddMutation(string mutationType, int mutationTeamId)
     {
+        if (!IsMutationAuthority())
+        {
+            return;
+        }
+
         // If I am not already immune to the mutation
         if (!Immunities.Any(x => x.StartsWith(mutationType)))
         {
@@ -215,6 +230,11 @@ public class MutationController : MonoBehaviour
     [PunRPC]
     public void AddImmunity(string immunity)
     {
+        if (!IsMutationAuthority())
+        {
+            return;
+        }
+
         // If I am not already immune to the mutation
         if (!Immunities.Any(x => x.StartsWith(immunity)))
         {
@@ -242,6 +262,11 @@ public class MutationController : MonoBehaviour
     [PunRPC]
     public void RemoveImmunity(string immunity)
     {
+        if (!IsMutationAuthority())
+        {
+            return;
+        }
+
         // If I am not already immune to the mutation
         if (Immunities.Any(x => x.StartsWith(immunity)))
         {
@@ -281,6 +306,11 @@ public class MutationController : MonoBehaviour
     /// <param name="healBullet">The bullet that hit the player.</param>
     public void CureMutation(BaseMutation mutation, GameObject healBullet = null)
     {
+        if (!IsMutationAuthority())
+        {
+            return;
+        }
+
         // Get the mutation that is aflicting me
         var mutationToCure = GetMutationByPrefab(mutation, false);
 
@@ -427,5 +457,31 @@ public class MutationController : MonoBehaviour
                 AddPathogen(((PathogenLoadout)PersistentPathogen).CurrentPathogen, teamId);
             }
         }
+    }
+
+    bool IsMutationAuthority()
+    {
+        if (!PhotonNetwork.inRoom)
+        {
+            return true;
+        }
+
+        var view = GetComponent<PhotonView>();
+        if (view == null)
+        {
+            view = GetComponentInParent<PhotonView>();
+        }
+
+        if (view == null)
+        {
+            return PhotonNetwork.isMasterClient;
+        }
+
+        if (view.isMine)
+        {
+            return true;
+        }
+
+        return view.ownerId == 0 && PhotonNetwork.isMasterClient;
     }
 }

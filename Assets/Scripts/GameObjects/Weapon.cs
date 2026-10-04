@@ -198,7 +198,7 @@ namespace Assets.Scripts.GameObjects
                         // Play sound
                         if (PhotonNetwork.inRoom && photonView != null)
                         {
-                            PhotonNetwork.RPC(photonView, "PlayFireSound", PhotonNetworkSettings.DefaultRPCNetworkTarget, false, null);
+                            PhotonNetwork.RPC(photonView, "PlayFireSound", PhotonNetworkSettings.EventTarget, false, null);
                         }
                         else
                         {
@@ -217,7 +217,7 @@ namespace Assets.Scripts.GameObjects
                         // Play sound
                         if (PhotonNetwork.inRoom && photonView != null)
                         {
-                            PhotonNetwork.RPC(photonView, "PlayEmptyClipSound", PhotonNetworkSettings.DefaultRPCNetworkTarget, false, null);
+                            PhotonNetwork.RPC(photonView, "PlayEmptyClipSound", PhotonNetworkSettings.EventTarget, false, null);
                         }
                         else
                         {
@@ -256,7 +256,7 @@ namespace Assets.Scripts.GameObjects
                             // Play sound
                             if (PhotonNetwork.inRoom && photonView != null)
                             {
-                                PhotonNetwork.RPC(photonView, "PlayFireSound", PhotonNetworkSettings.DefaultRPCNetworkTarget, false, null);
+                                PhotonNetwork.RPC(photonView, "PlayFireSound", PhotonNetworkSettings.EventTarget, false, null);
                             }
                             else
                             {
@@ -281,7 +281,7 @@ namespace Assets.Scripts.GameObjects
                         // Play sound
                         if (PhotonNetwork.inRoom && photonView != null)
                         {
-                            PhotonNetwork.RPC(photonView, "PlayEmptyClipSound", PhotonNetworkSettings.DefaultRPCNetworkTarget, false, null);
+                            PhotonNetwork.RPC(photonView, "PlayEmptyClipSound", PhotonNetworkSettings.EventTarget, false, null);
                         }
                         else
                         {
@@ -321,7 +321,7 @@ namespace Assets.Scripts.GameObjects
                 // Play sound
                 if (PhotonNetwork.inRoom && photonView != null)
                 {
-                    PhotonNetwork.RPC(photonView, "PlayReloadSound", PhotonNetworkSettings.DefaultRPCNetworkTarget, false, null);
+                    PhotonNetwork.RPC(photonView, "PlayReloadSound", PhotonNetworkSettings.EventTarget, false, null);
                 }
                 else
                 {

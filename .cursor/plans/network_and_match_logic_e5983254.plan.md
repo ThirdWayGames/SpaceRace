@@ -4,19 +4,19 @@ overview: Fix Photon desync by stopping blanket buffered RPCs, making match end 
 todos:
   - id: rpc-targets
     content: Split EventTarget vs StateTarget and stop buffering one-shot RPCs, including console logs
-    status: pending
+    status: completed
   - id: match-end
     content: Latch match end, store the real winner on room properties, and return to lobby from the master only
-    status: pending
+    status: completed
   - id: team-spawn
     content: Make team assignment and spawn reservation master-authoritative; stop per-frame SpawnPlayer
-    status: pending
+    status: completed
   - id: scene-flow
     content: Set scene sync once, null-check the lobby, add ShipBoardingPvp to the build, and destroy only owned views
-    status: pending
+    status: completed
   - id: owner-side-effects
     content: Restrict ragdoll, destroy, mutation, and console-unlock RPCs to the owner or a single timer fire
-    status: pending
+    status: completed
 isProject: false
 ---
 

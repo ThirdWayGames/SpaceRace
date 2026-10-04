@@ -1,16 +1,34 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class MasterClientEvents : MonoBehaviour
+public class MasterClientEvents : Photon.PunBehaviour
 {
     public List<GameObject> EnabledObjectsIfMasterClient;
 
-    // Use this for initialization
-    void Start ()
+    void Start()
     {
+        ApplyMasterObjects();
+    }
+
+    public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
+    {
+        ApplyMasterObjects();
+    }
+
+    void ApplyMasterObjects()
+    {
+        if (EnabledObjectsIfMasterClient == null)
+        {
+            return;
+        }
+
+        var isMaster = PhotonNetwork.player != null && PhotonNetwork.player.IsMasterClient;
         foreach (var gameObejectEnabledForMaster in EnabledObjectsIfMasterClient)
         {
-            gameObejectEnabledForMaster.SetActive(PhotonNetwork.player.IsMasterClient);
+            if (gameObejectEnabledForMaster != null)
+            {
+                gameObejectEnabledForMaster.SetActive(isMaster);
+            }
         }
     }
 }
