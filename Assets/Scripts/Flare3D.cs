@@ -6,7 +6,7 @@ namespace Assets.Scripts
     {
         public override void OnCollisionEnter(Collision collision)
         {
-            Debug.Log(string.Format("{0} collided with {1}", collision.contacts[0].thisCollider.name, collision.contacts[0].otherCollider.name));
+            // Land and burn. Bullet3D despawns on the first contact and would also log every bounce.
         }
     }
 }

@@ -109,7 +109,7 @@ MonoBehaviour:
   EquipmentIconUI: {fileID: 0}
   EquipmentIconMap: {fileID: 0}
   PickupPrefabType: 
-  FireDelay: 0.1
+  FireDelay: 0.75
   MinBulletDeviation: 0.5
   MaxBulletDeviation: 1.5
   BulletVelocity: 9
