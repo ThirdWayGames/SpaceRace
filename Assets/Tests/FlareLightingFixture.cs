@@ -33,6 +33,18 @@ public class FlareLightingFixture
     }
 
     [Test]
+    public void LandedFlareRaisesItsLightAboveTheFloor()
+    {
+        Assert.IsTrue(FlareLighting.IsGroundContact(1f));
+        Assert.IsTrue(FlareLighting.IsGroundContact(0.5f));
+        Assert.IsFalse(FlareLighting.IsGroundContact(0.2f));
+
+        Assert.AreEqual(0.45f, FlareLighting.LiftAlongNormal(0f, 0.45f), 0.0001f);
+        Assert.AreEqual(0.3f, FlareLighting.LiftAlongNormal(0.15f, 0.45f), 0.0001f);
+        Assert.AreEqual(0f, FlareLighting.LiftAlongNormal(0.8f, 0.45f), 0.0001f);
+    }
+
+    [Test]
     public void OwnerDestroysNetworkedFlareForTheRoom()
     {
         Assert.AreEqual(TimedDestroyAction.NetworkDestroy, DestroyMe.ChooseDestroy(true, true, true, 4));
