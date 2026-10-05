@@ -2044,9 +2044,7 @@ SkinnedMeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 65aafaada58948e4b904d13053edd5a2, type: 2}
-  - {fileID: 2100000, guid: a83efbcc3726e0e4682869e2f583ad7a, type: 2}
-  - {fileID: 2100000, guid: c6f9bccc90e637b499d946e41d0e0157, type: 2}
+  - {fileID: 2100000, guid: 4f8c2a91e6b74d0c9a15e3f7b28d64c1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2070,36 +2068,46 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 4300000, guid: 110ac53389721e14cbd1bc86cb25a6ba, type: 3}
+  m_Mesh: {fileID: 4300000, guid: 5b7c7ffb1ee1444a8b6afe2633f00155, type: 3}
   m_Bones:
   - {fileID: 4518736192827294}
   - {fileID: 4898777450250414}
   - {fileID: 4759388347776284}
   - {fileID: 4031616385427468}
+  - {fileID: 4323595212200188}
   - {fileID: 4000664871600274}
   - {fileID: 4032931928188646}
+  - {fileID: 4215220756336686}
   - {fileID: 4032019874077874}
   - {fileID: 4351661762438914}
   - {fileID: 4492225210460496}
+  - {fileID: 4081397480851388}
   - {fileID: 4053110667660310}
   - {fileID: 4480902742547160}
+  - {fileID: 4386577044050938}
   - {fileID: 4744002172722874}
   - {fileID: 4622891109184228}
   - {fileID: 4760442747054898}
+  - {fileID: 4577971205760106}
   - {fileID: 4421726791219888}
   - {fileID: 4245760439850948}
+  - {fileID: 4271898100001318}
   - {fileID: 4401502816193664}
   - {fileID: 4694826321739568}
+  - {fileID: 4302956509358174}
   - {fileID: 4370718325024570}
   - {fileID: 4526028543879016}
+  - {fileID: 4526028543879016}
   - {fileID: 4333506831395088}
+  - {fileID: 4611480252696512}
   - {fileID: 4602630902496656}
+  - {fileID: 4243983833102688}
   - {fileID: 4243983833102688}
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 4518736192827294}
   m_AABB:
-    m_Center: {x: -0.000025588088, y: -0.016107326, z: 0.0000034626573}
-    m_Extent: {x: 0.030343175, y: 0.02956014, z: 0.021593502}
+    m_Center: {x: -0.1, y: 0, z: 0.9}
+    m_Extent: {x: 0.6, y: 0.6, z: 1.1}
   m_DirtyAABB: 0
 --- !u!169 &169641649965722878
 AudioLowPassFilter:
