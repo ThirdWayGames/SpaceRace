@@ -36,11 +36,26 @@ namespace Assets.Scripts.Systems
         {
             if (!entity.MovementComponent.DisableMovement)
             {
-                // Get the vertical and horizontal axis index.
-                entity.MovementComponent.Horizontal = Input.GetAxis(entity.MovementComponent.HorizontalAxis);
-                entity.MovementComponent.Vertical = Input.GetAxis(entity.MovementComponent.VerticalAxis);
                 entity.MovementComponent.IsRunning = Input.GetKey(KeyCode.LeftShift);
                 entity.MovementComponent.IsDucking = Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.LeftShift);
+
+                var horizontal = Input.GetAxis(entity.MovementComponent.HorizontalAxis);
+                var vertical = Input.GetAxis(entity.MovementComponent.VerticalAxis);
+                if (entity.MovementComponent.IsDucking)
+                {
+                    // Ctrl is held, so A/S/D may be missing from the axis. Read the keys directly.
+                    horizontal = MovementKeyState.ApplyKeys(
+                        horizontal,
+                        MovementKeyState.Held(KeyCode.A) || MovementKeyState.Held(KeyCode.LeftArrow),
+                        MovementKeyState.Held(KeyCode.D) || MovementKeyState.Held(KeyCode.RightArrow));
+                    vertical = MovementKeyState.ApplyKeys(
+                        vertical,
+                        MovementKeyState.Held(KeyCode.S) || MovementKeyState.Held(KeyCode.DownArrow),
+                        MovementKeyState.Held(KeyCode.W) || MovementKeyState.Held(KeyCode.UpArrow));
+                }
+
+                entity.MovementComponent.Horizontal = horizontal;
+                entity.MovementComponent.Vertical = vertical;
             }
         }
 
