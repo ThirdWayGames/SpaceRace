@@ -23,13 +23,14 @@ namespace Assets.Scripts.Systems
         }
 
         /// <summary>
-        /// Picks the animator state. Crouching keeps the duck pose, including while moving.
+        /// Picks the animator state. Standing still while crouched holds the duck pose.
+        /// Moving while crouched plays the crouch walk.
         /// </summary>
         public static int ResolveState(bool isDucking, bool isMoving, bool isRunningForward)
         {
             if (isDucking)
             {
-                return 3;
+                return isMoving ? 4 : 3;
             }
 
             if (!isMoving)
@@ -48,7 +49,7 @@ namespace Assets.Scripts.Systems
             // For each entity.
             foreach (var entity in GetEntities<Filter>())
             {
-                // Determine the state. Crouching stays on the duck pose while the clone moves.
+                // Crouch idle stays on the duck pose. Crouch movement plays the crouch walk.
                 var IsMoving = entity.MovementComponent.Vertical != 0f || entity.MovementComponent.Horizontal != 0f;
                 var actualState = ResolveState(entity.MovementComponent.IsDucking, IsMoving, entity.MovementComponent.IsRunningForward);
 

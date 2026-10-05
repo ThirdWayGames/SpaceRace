@@ -25,11 +25,11 @@ public class CrouchMovementFixture
     }
 
     [Test]
-    public void MovingWhileCrouchedKeepsTheDuckPose()
+    public void CrouchIdleHoldsTheDuckPoseAndMovementUsesCrouchWalk()
     {
-        Assert.AreEqual(3, AnimatorUpdateSystem.ResolveState(true, true, false));
-        Assert.AreEqual(3, AnimatorUpdateSystem.ResolveState(true, true, true));
         Assert.AreEqual(3, AnimatorUpdateSystem.ResolveState(true, false, false));
+        Assert.AreEqual(4, AnimatorUpdateSystem.ResolveState(true, true, false));
+        Assert.AreEqual(4, AnimatorUpdateSystem.ResolveState(true, true, true));
     }
 
     [Test]
