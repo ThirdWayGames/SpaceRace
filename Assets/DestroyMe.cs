@@ -11,6 +11,12 @@ public class DestroyMe : Photon.MonoBehaviour
     // List if Dispose call backs
     protected List<IDisposeCallback> DisposeCallbacks;
 
+    bool expired;
+
+    bool disposeInvoked;
+
+    bool destroyRequested;
+
     public void Awake()
     {
         CurrentTimer = DestroyTimer;
@@ -23,39 +29,69 @@ public class DestroyMe : Photon.MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update ()
+    void Update()
     {
-        CurrentTimer -= Time.deltaTime;
-
-        // If the current timer is <= 0
-        if (CurrentTimer <= 0)
+        if (!expired)
         {
-            // If we have any GOs to perform a dispose callback on.
-            if (DisposeCallbacks != null && DisposeCallbacks.Any())
+            CurrentTimer -= Time.deltaTime;
+
+            if (CurrentTimer > 0f)
             {
-                // For each GO that implements the IDisposeCallBack interface.
-                foreach (var disposeCallBack in DisposeCallbacks)
-                {
-                    // Call the dispose item method.
-                    disposeCallBack.DisposeItem(CurrentTimer);
-                }
+                return;
             }
 
-            // if we are not in a room
-            if (photonView == null || !PhotonNetwork.inRoom)
+            expired = true;
+            InvokeDispose();
+        }
+
+        TryDestroy();
+    }
+
+    void InvokeDispose()
+    {
+        if (disposeInvoked || DisposeCallbacks == null)
+        {
+            return;
+        }
+
+        disposeInvoked = true;
+
+        for (int i = 0; i < DisposeCallbacks.Count; i++)
+        {
+            var disposeCallBack = DisposeCallbacks[i];
+            if (disposeCallBack != null)
             {
-                // Standard destroy
-                Destroy(gameObject);
-            }
-            else
-            {
-                // If we are in a room and the photon view is mine/
-                if (PhotonNetwork.inRoom && photonView.isMine)
-                {
-                    // Network destroy.
-                    PhotonNetwork.Destroy(this.gameObject);
-                }
+                disposeCallBack.DisposeItem(CurrentTimer);
             }
         }
+    }
+
+    void TryDestroy()
+    {
+        if (destroyRequested)
+        {
+            return;
+        }
+
+        var view = photonView;
+        var action = FlareLighting.ChooseDestroy(PhotonNetwork.inRoom, view != null, view != null && view.isMine, view != null ? view.instantiationId : 0);
+        if (action == TimedDestroyAction.WaitForOwner)
+        {
+            return;
+        }
+
+        destroyRequested = true;
+        if (action == TimedDestroyAction.NetworkDestroy)
+        {
+            PhotonNetwork.Destroy(gameObject);
+            return;
+        }
+
+        Destroy(gameObject);
+    }
+
+    public static TimedDestroyAction ChooseDestroy(bool inRoom, bool hasPhotonView, bool isMine, int instantiationId)
+    {
+        return FlareLighting.ChooseDestroy(inRoom, hasPhotonView, isMine, instantiationId);
     }
 }
