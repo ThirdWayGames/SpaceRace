@@ -54,6 +54,19 @@ public class FlareLightingFixture
     }
 
     [Test]
+    public void OnlyTheNewestFlaresAreSelected()
+    {
+        var allow = FlareLighting.ChooseActiveLights(new[] { true, true, true, true, true }, FlareLighting.MaxActiveLights);
+        Assert.IsFalse(allow[0]);
+        Assert.IsTrue(allow[1]);
+        Assert.IsTrue(allow[4]);
+
+        var afterNewestExpires = FlareLighting.ChooseActiveLights(new[] { true, true, true, true, false }, FlareLighting.MaxActiveLights);
+        Assert.IsTrue(afterNewestExpires[0]);
+        Assert.IsFalse(afterNewestExpires[4]);
+    }
+
+    [Test]
     public void OnlyTheNewestFlaresKeepALight()
     {
         var created = new GameObject[FlareLighting.MaxActiveLights + 1];

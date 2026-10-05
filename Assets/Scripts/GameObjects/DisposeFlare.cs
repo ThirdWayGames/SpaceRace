@@ -1,22 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public static class FlareLighting
-{
-    public const int MaxActiveLights = 4;
-
-    public const int MaxParticles = 200;
-
-    public const float MaxEmissionRate = 80f;
-
-    public const float MaxParticleScreenSize = 0.5f;
-
-    public static bool ShouldKeepLight(float timeRemaining, float disposeOffset)
-    {
-        return timeRemaining > disposeOffset;
-    }
-}
-
 public static class FlareLightBudget
 {
     static readonly List<DisposeFlare> flares = new List<DisposeFlare>();
@@ -52,22 +36,24 @@ public static class FlareLightBudget
 
     public static void Apply()
     {
-        var lit = 0;
         for (int i = flares.Count - 1; i >= 0; i--)
         {
-            var flare = flares[i];
-            if (flare == null)
+            if (flares[i] == null)
             {
                 flares.RemoveAt(i);
-                continue;
             }
+        }
 
-            var allow = flare.WantsLight && lit < FlareLighting.MaxActiveLights;
-            flare.ApplyLight(allow);
-            if (allow)
-            {
-                lit++;
-            }
+        var wantsLight = new bool[flares.Count];
+        for (int i = 0; i < flares.Count; i++)
+        {
+            wantsLight[i] = flares[i].WantsLight;
+        }
+
+        var allow = FlareLighting.ChooseActiveLights(wantsLight, FlareLighting.MaxActiveLights);
+        for (int i = 0; i < flares.Count; i++)
+        {
+            flares[i].ApplyLight(allow[i]);
         }
     }
 }
