@@ -21,6 +21,9 @@ namespace Assets.Scripts.Components
         public bool DisableMovement;
         public bool RelativeMovement;
         public bool IsDucking = false;
+
+        public float CrouchSpeedMultiplier = 0.5f;
+
         public bool IsRunning = false;
         public float DirectionOfMovement;
         public ForceMode CurrentForceMode;
@@ -40,6 +43,15 @@ namespace Assets.Scripts.Components
                 return IsRunning && DirectionOfMovement > 0.8f;
             }
             set { }
+        }
+
+        public float CrouchSpeed
+        {
+            get
+            {
+                var multiplier = CrouchSpeedMultiplier < 0f ? 0f : CrouchSpeedMultiplier;
+                return CurrentValue * multiplier;
+            }
         }
 
         public override void Update()

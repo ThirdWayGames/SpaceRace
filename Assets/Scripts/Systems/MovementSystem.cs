@@ -98,7 +98,7 @@ namespace Assets.Scripts.Systems
                             }
                         }
 
-                        if ((verticalMovementIndex != 0f || horizontalMovementIndex != 0f) && !entity.MovementComponent.IsDucking)
+                        if (ShouldTranslate(verticalMovementIndex, horizontalMovementIndex))
                         {
                             // Adjust the velocity of the transform/rigid body if there is one.
                             var movementVector = new Vector3(horizontalMovementIndex, 0, verticalMovementIndex);
@@ -128,12 +128,26 @@ namespace Assets.Scripts.Systems
         }
 
         /// <summary>
+        /// Returns true when vertical or horizontal movement input is present.
+        /// </summary>
+        public static bool ShouldTranslate(float vertical, float horizontal)
+        {
+            return vertical != 0f || horizontal != 0f;
+        }
+
+        /// <summary>
         /// Gets the current speed that the clone is moving at.
         /// </summary>
         /// <param name="entity">The filtered entity.</param>
         /// <returns>The current speed the clone should be moving at.</returns>
         protected virtual float GetCurrentSpeed(Filter entity)
         {
+            if (entity.MovementComponent.IsDucking)
+            {
+                AdjustStamina(entity, false);
+                return entity.MovementComponent.CrouchSpeed;
+            }
+
             var applyStaminaLoss = false;
             float returnSpeed = entity.MovementComponent.CurrentValue; ;
 
