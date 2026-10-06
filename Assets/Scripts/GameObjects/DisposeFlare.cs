@@ -79,10 +79,7 @@ public class DisposeFlare : BaseDisposeCallback
 
     void Awake()
     {
-        if (Light != null)
-        {
-            Light.shadows = LightShadows.None;
-        }
+        FlareLighting.ApplyThrownLight(Light);
 
         var destroyMe = GetComponent<DestroyMe>();
         remaining = destroyMe != null ? destroyMe.DestroyTimer : 0f;

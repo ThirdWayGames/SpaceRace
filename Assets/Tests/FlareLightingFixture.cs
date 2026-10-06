@@ -1,3 +1,4 @@
+using Assets.Scripts;
 using NUnit.Framework;
 using UnityEngine;
 using Assert = NUnit.Framework.Assert;
@@ -9,12 +10,14 @@ public class FlareLightingFixture
     public void SetUp()
     {
         FlareLightBudget.Reset();
+        FlarePlayerPassThrough.Reset();
     }
 
     [TearDown]
     public void TearDown()
     {
         FlareLightBudget.Reset();
+        FlarePlayerPassThrough.Reset();
     }
 
     [Test]
@@ -30,6 +33,95 @@ public class FlareLightingFixture
         Assert.IsFalse(FlareLighting.ShouldKeepLight(1.5f, 1.5f));
         Assert.IsFalse(FlareLighting.ShouldKeepLight(0f, 1.5f));
         Assert.IsFalse(FlareLighting.ShouldKeepLight(-2f, 1.5f));
+    }
+
+    [Test]
+    public void ThrownLightReachesFartherAndIsSofter()
+    {
+        Assert.Greater(FlareLighting.LightRange, 5f);
+        Assert.Less(FlareLighting.LightIntensity, 10f);
+
+        var lightObject = new GameObject("flare-light");
+        var light = lightObject.AddComponent<Light>();
+        light.range = 5f;
+        light.intensity = 10f;
+
+        FlareLighting.ApplyThrownLight(light);
+
+        Assert.AreEqual(16f, light.range, 0.0001f);
+        Assert.AreEqual(4f, light.intensity, 0.0001f);
+        Assert.AreEqual(LightShadows.None, light.shadows);
+        Object.DestroyImmediate(lightObject);
+    }
+
+    [Test]
+    public void HoldingTheThrowLengthensTheThrowUpToDouble()
+    {
+        Assert.AreEqual(1f, FlareThrow.SpeedMultiplier(0f), 0.0001f);
+        Assert.AreEqual(1.5f, FlareThrow.SpeedMultiplier(0.5f), 0.0001f);
+        Assert.AreEqual(2f, FlareThrow.SpeedMultiplier(FlareThrow.FullChargeSeconds), 0.0001f);
+        Assert.AreEqual(2f, FlareThrow.SpeedMultiplier(4f), 0.0001f);
+
+        var throwObject = new GameObject("throwable");
+        throwObject.SetActive(false);
+        var weapon = throwObject.AddComponent<ThrowItemAction>();
+        weapon.BulletVelocity = 9f;
+        throwObject.SetActive(true);
+
+        weapon.BeginThrowCharge();
+        Assert.AreEqual(9f, weapon.ChargedBulletVelocity, 0.0001f);
+
+        weapon.AccumulateThrowCharge(FlareThrow.FullChargeSeconds);
+        Assert.AreEqual(18f, weapon.ChargedBulletVelocity, 0.0001f);
+        Assert.IsTrue(weapon.IsThrowCharging);
+
+        weapon.ClearThrowCharge();
+        Assert.IsFalse(weapon.IsThrowCharging);
+        Assert.AreEqual(9f, weapon.ChargedBulletVelocity, 0.0001f);
+        Object.DestroyImmediate(throwObject);
+    }
+
+    [Test]
+    public void FlareDoesNotCollideWithThePlayer()
+    {
+        var playerObject = new GameObject("player");
+        playerObject.SetActive(false);
+        playerObject.AddComponent<PassThroughPlayer>();
+        var body = playerObject.AddComponent<CapsuleCollider>();
+        var headObject = new GameObject("head");
+        headObject.transform.SetParent(playerObject.transform);
+        var head = headObject.AddComponent<BoxCollider>();
+        playerObject.SetActive(true);
+
+        var flareObject = new GameObject("flare");
+        var flare = flareObject.AddComponent<SphereCollider>();
+        FlarePlayerPassThrough.RegisterFlare(flare);
+
+        Assert.IsTrue(FlarePlayerPassThrough.WasIgnored(flare, body));
+        Assert.IsTrue(FlarePlayerPassThrough.WasIgnored(flare, head));
+
+        Object.DestroyImmediate(playerObject);
+        Object.DestroyImmediate(flareObject);
+    }
+
+    [Test]
+    public void PlayerWhoAppearsLaterStillWalksThroughFlares()
+    {
+        var flareObject = new GameObject("flare");
+        var flare = flareObject.AddComponent<SphereCollider>();
+        FlarePlayerPassThrough.RegisterFlare(flare);
+
+        var playerObject = new GameObject("late-player");
+        playerObject.SetActive(false);
+        var player = playerObject.AddComponent<PassThroughPlayer>();
+        var body = playerObject.AddComponent<CapsuleCollider>();
+        playerObject.SetActive(true);
+        FlarePlayerPassThrough.RegisterPlayer(player);
+
+        Assert.IsTrue(FlarePlayerPassThrough.WasIgnored(flare, body));
+
+        Object.DestroyImmediate(playerObject);
+        Object.DestroyImmediate(flareObject);
     }
 
     [Test]
@@ -133,5 +225,12 @@ public class FlareLightingFixture
         flare.DisposeOffset = 1.5f;
         flareObject.SetActive(true);
         return flareObject;
+    }
+}
+
+public class PassThroughPlayer : BasePlayerController3D
+{
+    public override void InitialiseClientSpawn()
+    {
     }
 }
