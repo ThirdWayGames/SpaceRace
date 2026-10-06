@@ -7,6 +7,8 @@ namespace Assets.Scripts
     {
         static readonly List<Collider> flareColliders = new List<Collider>();
 
+        static readonly HashSet<long> ignoredPairs = new HashSet<long>();
+
         public static void RegisterFlare(Collider flare)
         {
             if (flare == null || flareColliders.Contains(flare))
@@ -55,6 +57,27 @@ namespace Assets.Scripts
         public static void Reset()
         {
             flareColliders.Clear();
+            ignoredPairs.Clear();
+        }
+
+        public static void NoteIgnored(Collider flare, Collider other)
+        {
+            if (flare == null || other == null)
+            {
+                return;
+            }
+
+            ignoredPairs.Add(PairKey(flare, other));
+        }
+
+        public static bool WasIgnored(Collider flare, Collider other)
+        {
+            if (flare == null || other == null)
+            {
+                return false;
+            }
+
+            return ignoredPairs.Contains(PairKey(flare, other));
         }
 
         static void Ignore(Collider flare, BasePlayerController3D player)
@@ -69,7 +92,22 @@ namespace Assets.Scripts
                 }
 
                 Physics.IgnoreCollision(flare, playerCollider, true);
+                ignoredPairs.Add(PairKey(flare, playerCollider));
             }
+        }
+
+        static long PairKey(Collider a, Collider b)
+        {
+            var left = a.GetInstanceID();
+            var right = b.GetInstanceID();
+            if (left > right)
+            {
+                var swap = left;
+                left = right;
+                right = swap;
+            }
+
+            return ((long)left << 32) | (uint)right;
         }
     }
 
@@ -105,6 +143,7 @@ namespace Assets.Scripts
                 if (mine != null && collision.collider.enabled && mine.enabled)
                 {
                     Physics.IgnoreCollision(mine, collision.collider, true);
+                    FlarePlayerPassThrough.NoteIgnored(mine, collision.collider);
                 }
 
                 return;

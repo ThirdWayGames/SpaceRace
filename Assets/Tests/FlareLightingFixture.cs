@@ -97,8 +97,8 @@ public class FlareLightingFixture
         var flare = flareObject.AddComponent<SphereCollider>();
         FlarePlayerPassThrough.RegisterFlare(flare);
 
-        Assert.IsTrue(Physics.GetIgnoreCollision(flare, body));
-        Assert.IsTrue(Physics.GetIgnoreCollision(flare, head));
+        Assert.IsTrue(FlarePlayerPassThrough.WasIgnored(flare, body));
+        Assert.IsTrue(FlarePlayerPassThrough.WasIgnored(flare, head));
 
         Object.DestroyImmediate(playerObject);
         Object.DestroyImmediate(flareObject);
@@ -118,7 +118,7 @@ public class FlareLightingFixture
         playerObject.SetActive(true);
         FlarePlayerPassThrough.RegisterPlayer(player);
 
-        Assert.IsTrue(Physics.GetIgnoreCollision(flare, body));
+        Assert.IsTrue(FlarePlayerPassThrough.WasIgnored(flare, body));
 
         Object.DestroyImmediate(playerObject);
         Object.DestroyImmediate(flareObject);
