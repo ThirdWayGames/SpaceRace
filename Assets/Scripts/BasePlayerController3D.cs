@@ -30,6 +30,7 @@ namespace Assets.Scripts
         public void Start()
         {
             EquipmentController = this.GetComponent<EquipmentComponent>();
+            FlarePlayerPassThrough.RegisterPlayer(this);
         }
 
         public void SetDisableActions(bool disabled)

@@ -348,10 +348,8 @@ namespace Assets.Scripts.Components
                         equipment.CycleFireMode();
                     }
 
-                    // determine if we are firing the weapon
-                    var fireButtonActive = equipment.GetFireMode() != FireMode.Beam ? Input.GetButtonDown(actionButton) : Input.GetButton(actionButton);
-                    var isFiring = fireButtonActive;
                     var isRunning = false;
+                    var movementBlocked = false;
 
                     // Get the movement component;
                     var movementComponent = this.GetComponent<MovementComponent>();
@@ -361,11 +359,18 @@ namespace Assets.Scripts.Components
                     {
                         // Determine if we are running forward (not allowed to fire when running forward.
                         isRunning = movementComponent.IsRunningForward;
-                        isFiring = isFiring && !movementComponent.IsRunningForward && !movementComponent.IsDucking;
+                        movementBlocked = movementComponent.IsRunningForward || movementComponent.IsDucking;
                     }
 
-                    if (equipment.GetFireMode() != FireMode.Beam)
+                    if (equipment.ChargesThrow && equipment.GetFireMode() != FireMode.Beam)
                     {
+                        ChargeThrow(equipment, actionButton, isRunning, movementBlocked);
+                    }
+                    else if (equipment.GetFireMode() != FireMode.Beam)
+                    {
+                        // determine if we are firing the weapon
+                        var isFiring = Input.GetButtonDown(actionButton) && !movementBlocked;
+
                         // if we are firing.
                         if (isFiring)
                         {
@@ -376,9 +381,42 @@ namespace Assets.Scripts.Components
                     else
                     {
                         // Active the current equipment.
+                        var isFiring = Input.GetButton(actionButton) && !movementBlocked;
                         equipment.FireBeam(GetComponentInParent<PlayerController3D>(), isRunning, Time.deltaTime, isFiring);
                     }
                 }
+            }
+        }
+
+        void ChargeThrow(GameObjects.Weapon equipment, string actionButton, bool isRunning, bool movementBlocked)
+        {
+            var pressed = Input.GetButtonDown(actionButton);
+            var released = Input.GetButtonUp(actionButton);
+            var held = Input.GetButton(actionButton);
+
+            if (pressed && !movementBlocked)
+            {
+                equipment.BeginThrowCharge();
+            }
+
+            if (!equipment.IsThrowCharging)
+            {
+                return;
+            }
+
+            if (held && !released && !movementBlocked)
+            {
+                equipment.AccumulateThrowCharge(Time.deltaTime);
+            }
+
+            if (released || movementBlocked || !held)
+            {
+                if (released && !movementBlocked)
+                {
+                    equipment.Fire(GetComponentInParent<PlayerController3D>(), isRunning, Time.deltaTime);
+                }
+
+                equipment.ClearThrowCharge();
             }
         }
 

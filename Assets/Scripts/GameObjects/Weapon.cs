@@ -156,6 +156,31 @@ namespace Assets.Scripts.GameObjects
         }
 
         /// <summary>
+        /// Thrown weapons build power while the fire button is held, then release on button up.
+        /// </summary>
+        public virtual bool ChargesThrow
+        {
+            get { return false; }
+        }
+
+        public virtual bool IsThrowCharging
+        {
+            get { return false; }
+        }
+
+        public virtual void BeginThrowCharge()
+        {
+        }
+
+        public virtual void AccumulateThrowCharge(float deltaTime)
+        {
+        }
+
+        public virtual void ClearThrowCharge()
+        {
+        }
+
+        /// <summary>
         /// Fires the weapon the player has equiped.
         /// </summary>
         /// <param name="player">The player.</param>

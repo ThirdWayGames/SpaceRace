@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public enum TimedDestroyAction
 {
     LocalDestroy,
@@ -16,6 +18,26 @@ public static class FlareLighting
     public const float MaxParticleScreenSize = 0.5f;
 
     public const float LightClearance = 0.45f;
+
+    /// <summary>
+    /// Wider than the old range of 5, with a lower intensity than the old value of 10.
+    /// The pool reaches farther and the center stays softer.
+    /// </summary>
+    public const float LightRange = 16f;
+
+    public const float LightIntensity = 4f;
+
+    public static void ApplyThrownLight(Light light)
+    {
+        if (light == null)
+        {
+            return;
+        }
+
+        light.range = LightRange;
+        light.intensity = LightIntensity;
+        light.shadows = LightShadows.None;
+    }
 
     public static bool ShouldKeepLight(float timeRemaining, float disposeOffset)
     {
@@ -61,5 +83,32 @@ public static class FlareLighting
         }
 
         return isMine ? TimedDestroyAction.NetworkDestroy : TimedDestroyAction.WaitForOwner;
+    }
+}
+
+public static class FlareThrow
+{
+    public const float MaxDistanceMultiplier = 2f;
+
+    public const float FullChargeSeconds = 1f;
+
+    /// <summary>
+    /// A flat throw spends a fixed time in the air, so travel distance scales with launch speed.
+    /// No charge keeps today's distance. A full hold doubles it.
+    /// </summary>
+    public static float SpeedMultiplier(float heldSeconds)
+    {
+        if (heldSeconds <= 0f || MaxDistanceMultiplier <= 1f)
+        {
+            return 1f;
+        }
+
+        var charge = FullChargeSeconds <= 0f ? 1f : heldSeconds / FullChargeSeconds;
+        if (charge > 1f)
+        {
+            charge = 1f;
+        }
+
+        return 1f + (MaxDistanceMultiplier - 1f) * charge;
     }
 }
