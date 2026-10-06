@@ -15,9 +15,22 @@ public static class FlareLighting
 
     public const float MaxParticleScreenSize = 0.5f;
 
+    public const float LightClearance = 0.45f;
+
     public static bool ShouldKeepLight(float timeRemaining, float disposeOffset)
     {
         return timeRemaining > disposeOffset;
+    }
+
+    public static bool IsGroundContact(float normalY)
+    {
+        return normalY >= 0.5f;
+    }
+
+    public static float LiftAlongNormal(float lightOffsetAlongNormal, float clearance)
+    {
+        var lift = clearance - lightOffsetAlongNormal;
+        return lift > 0f ? lift : 0f;
     }
 
     public static bool[] ChooseActiveLights(bool[] wantsLightOldestFirst, int maxActive)
