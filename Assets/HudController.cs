@@ -78,6 +78,14 @@ namespace Assets
 
         private Camera MiniMapCamera;
 
+        Image healthFill;
+
+        Image staminaFill;
+
+        Image energyFill;
+
+        GameObject howToPanel;
+
         public void Awake()
         {
             if (PrevGameCompletionTime as IntVariable == null)
@@ -142,10 +150,14 @@ namespace Assets
             }
 
             var coreHealthPanel = FindChild("CoreHealthPanel");
-            if (leftEquipMode != null)
+            if (coreHealthPanel != null)
             {
                 PowerCoreHealthPanel = coreHealthPanel.GetComponentInChildren<CanvasRenderer>();
             }
+
+            healthFill = FillImage(HealthSlider);
+            staminaFill = FillImage(StaminaSlider);
+            energyFill = FillImage(EnergySlider);
         }
 
         public void Start()
@@ -155,7 +167,10 @@ namespace Assets
             {
                 // Hide it when we start.
                 GameMenu.SetActive(false);
+                EnsurePauseActions();
             }
+
+            EnsureHudReadability();
 
             if (MiniMap != null)
             {
@@ -207,6 +222,8 @@ namespace Assets
                 EnergySlider.value = EnergyComponent.CurrentValue;
             }
 
+            UpdateVitalColors();
+
             if (RedCoreHealthSlider != null & redCoreHealthComponent != null)
             {
                 RedCoreHealthSlider.maxValue = redCoreHealthComponent.MaxValue;
@@ -227,6 +244,10 @@ namespace Assets
                 {
                     // Toggle the menu active state.
                     GameMenu.SetActive(!GameMenu.GetActive());
+                    if (!GameMenu.activeSelf && howToPanel != null)
+                    {
+                        howToPanel.SetActive(false);
+                    }
                 }
             }
 
@@ -256,56 +277,14 @@ namespace Assets
                     var equipment = ObservedPlayer.GetComponent<EquipmentComponent>();
                     if (equipment != null)
                     {
-                        if (RightEquipmentFireMode != null)
+                        if (LeftEquipmentFireMode != null && equipment.LeftHand != null)
                         {
-                            var weapon = equipment.LeftHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>();
-                            if (weapon != null)
-                            {
-                                switch (weapon.CurrentFireMode)
-                                {
-                                    case Scripts.Enums.FireMode.Single:
-                                        {
-                                            LeftEquipmentFireMode.sprite = FireModeSingle;
-                                            break;
-                                        }
-                                    case Scripts.Enums.FireMode.Cloud:
-                                        {
-                                            LeftEquipmentFireMode.sprite = FireModeCloud;
-                                            break;
-                                        }
-                                    case Scripts.Enums.FireMode.Beam:
-                                        {
-                                            LeftEquipmentFireMode.sprite = FireModeBeam;
-                                            break;
-                                        }
-                                }
-                            }
+                            ApplyFireMode(LeftEquipmentFireMode, equipment.LeftHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>());
                         }
 
-                        if (RightEquipmentFireMode != null)
+                        if (RightEquipmentFireMode != null && equipment.RightHand != null)
                         {
-                            var weapon = equipment.RightHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>();
-                            if (weapon != null)
-                            {
-                                switch (weapon.CurrentFireMode)
-                                {
-                                    case Scripts.Enums.FireMode.Single:
-                                        {
-                                            RightEquipmentFireMode.sprite = FireModeSingle;
-                                            break;
-                                        }
-                                    case Scripts.Enums.FireMode.Cloud:
-                                        {
-                                            RightEquipmentFireMode.sprite = FireModeCloud;
-                                            break;
-                                        }
-                                    case Scripts.Enums.FireMode.Beam:
-                                        {
-                                            RightEquipmentFireMode.sprite = FireModeBeam;
-                                            break;
-                                        }
-                                }
-                            }
+                            ApplyFireMode(RightEquipmentFireMode, equipment.RightHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>());
                         }
                     }
                 }
@@ -322,20 +301,23 @@ namespace Assets
                 {
                     // Calculate the remaining time based on the current time since game start.
                     var secondsRemaining = ((IntVariable)PrevGameCompletionTime).Value - (int)Time.timeSinceLevelLoad;
-                    if (secondsRemaining == lastBroadcastSeconds)
+                    if (secondsRemaining < 0)
                     {
-                        return;
+                        secondsRemaining = 0;
                     }
 
-                    lastBroadcastSeconds = secondsRemaining;
-                    var photonView = this.GetComponent<PhotonView>();
-                    if (photonView != null && PhotonNetwork.inRoom)
+                    if (secondsRemaining != lastBroadcastSeconds)
                     {
-                        PhotonNetwork.RPC(photonView, "UpdateTimeRemaining", PhotonNetworkSettings.EventTarget, false, new object[] { secondsRemaining });
-                    }
-                    else
-                    {
-                        UpdateTimeRemaining(secondsRemaining);
+                        lastBroadcastSeconds = secondsRemaining;
+                        var photonView = this.GetComponent<PhotonView>();
+                        if (photonView != null && PhotonNetwork.inRoom)
+                        {
+                            PhotonNetwork.RPC(photonView, "UpdateTimeRemaining", PhotonNetworkSettings.EventTarget, false, new object[] { secondsRemaining });
+                        }
+                        else
+                        {
+                            UpdateTimeRemaining(secondsRemaining);
+                        }
                     }
                 }
             }
@@ -369,18 +351,243 @@ namespace Assets
         {
             if (GameTimeRemainingText != null)
             {
-                var timeSpanRemaining = new TimeSpan(0, 0, seconds);
-                if (timeSpanRemaining.TotalMinutes < 1)
-                {
-                    GameTimeRemainingText.text = string.Format("TIME: {0}", timeSpanRemaining.TotalSeconds);
-                }
-                else
-                {
-                    GameTimeRemainingText.text = string.Format("TIME: {0}:{1}", timeSpanRemaining.Minutes, timeSpanRemaining.Seconds);
-                }
-
+                GameTimeRemainingText.text = SpaceRaceCopy.FormatTimeRemaining(seconds);
                 GameTimeRemainingText.enabled = true;
             }
+        }
+
+        void ApplyFireMode(Image target, Assets.Scripts.GameObjects.Weapon weapon)
+        {
+            if (target == null || weapon == null)
+            {
+                return;
+            }
+
+            switch (weapon.CurrentFireMode)
+            {
+                case Scripts.Enums.FireMode.Single:
+                    target.sprite = FireModeSingle;
+                    break;
+                case Scripts.Enums.FireMode.Cloud:
+                    target.sprite = FireModeCloud;
+                    break;
+                case Scripts.Enums.FireMode.Beam:
+                    target.sprite = FireModeBeam;
+                    break;
+            }
+        }
+
+        static Image FillImage(Slider slider)
+        {
+            if (slider == null || slider.fillRect == null)
+            {
+                return null;
+            }
+
+            return slider.fillRect.GetComponent<Image>();
+        }
+
+        void EnsureHudReadability()
+        {
+            TintFill(healthFill, SpaceRaceTheme.Health);
+            TintFill(staminaFill, SpaceRaceTheme.Stamina);
+            TintFill(energyFill, SpaceRaceTheme.Energy);
+            TintFill(FillImage(RedCoreHealthSlider), SpaceRaceTheme.RedTeam);
+            TintFill(FillImage(BlueCoreHealthSlider), SpaceRaceTheme.BlueTeam);
+            EnsureCoreLabel(RedCoreHealthSlider, "RED CORE", SpaceRaceTheme.RedTeam);
+            EnsureCoreLabel(BlueCoreHealthSlider, "BLUE CORE", SpaceRaceTheme.BlueTeam);
+            EnsureSlotLabel(LeftEquipmentFireMode, "LEFT");
+            EnsureSlotLabel(RightEquipmentFireMode, "RIGHT");
+            EnsureMapHint();
+        }
+
+        void UpdateVitalColors()
+        {
+            TintFill(staminaFill, SpaceRaceTheme.Stamina);
+            TintFill(energyFill, SpaceRaceTheme.Energy);
+
+            if (healthFill == null || HealthComponent == null || HealthComponent.MaxValue <= 0)
+            {
+                TintFill(healthFill, SpaceRaceTheme.Health);
+                return;
+            }
+
+            var ratio = HealthComponent.CurrentValue / HealthComponent.MaxValue;
+            if (ratio > 0f && ratio < 0.25f)
+            {
+                var pulse = Mathf.PingPong(Time.time, 0.45f);
+                healthFill.color = Color.Lerp(SpaceRaceTheme.Health, Color.white, pulse);
+            }
+            else
+            {
+                healthFill.color = SpaceRaceTheme.Health;
+            }
+        }
+
+        static void TintFill(Image fill, Color color)
+        {
+            if (fill != null)
+            {
+                fill.color = color;
+            }
+        }
+
+        static void EnsureCoreLabel(Slider slider, string label, Color color)
+        {
+            if (slider == null)
+            {
+                return;
+            }
+
+            var parent = slider.transform.parent != null ? slider.transform.parent : slider.transform;
+            var existing = parent.Find("CoreLabel");
+            Text text;
+            if (existing == null)
+            {
+                text = SpaceRaceWidgets.CreateText(parent, "CoreLabel", label, 12, color, TextAnchor.MiddleCenter);
+                var rect = text.rectTransform;
+                rect.anchorMin = new Vector2(0f, 1f);
+                rect.anchorMax = new Vector2(1f, 1f);
+                rect.pivot = new Vector2(0.5f, 0f);
+                rect.anchoredPosition = new Vector2(0f, 2f);
+                rect.sizeDelta = new Vector2(0f, 18f);
+            }
+            else
+            {
+                text = existing.GetComponent<Text>();
+            }
+
+            if (text != null)
+            {
+                text.text = label;
+                text.color = color;
+            }
+        }
+
+        static void EnsureSlotLabel(Image icon, string label)
+        {
+            if (icon == null)
+            {
+                return;
+            }
+
+            var existing = icon.transform.Find("SlotLabel");
+            Text text;
+            if (existing == null)
+            {
+                text = SpaceRaceWidgets.CreateText(icon.transform, "SlotLabel", label, 11, SpaceRaceTheme.Text, TextAnchor.MiddleCenter);
+                var rect = text.rectTransform;
+                rect.anchorMin = new Vector2(0f, 1f);
+                rect.anchorMax = new Vector2(1f, 1f);
+                rect.pivot = new Vector2(0.5f, 0f);
+                rect.anchoredPosition = new Vector2(0f, 1f);
+                rect.sizeDelta = new Vector2(0f, 14f);
+            }
+            else
+            {
+                text = existing.GetComponent<Text>();
+            }
+
+            if (text != null)
+            {
+                text.text = label;
+                text.color = SpaceRaceTheme.Text;
+            }
+        }
+
+        void EnsureMapHint()
+        {
+            if (MiniMap == null || MiniMap.transform.Find("MapHint") != null)
+            {
+                return;
+            }
+
+            var text = SpaceRaceWidgets.CreateText(MiniMap.transform, "MapHint", "M", 14, SpaceRaceTheme.Teal, TextAnchor.MiddleCenter);
+            var rect = text.rectTransform;
+            rect.anchorMin = new Vector2(1f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(1f, 0f);
+            rect.anchoredPosition = new Vector2(-4f, 4f);
+            rect.sizeDelta = new Vector2(24f, 18f);
+        }
+
+        void EnsurePauseActions()
+        {
+            if (GameMenu == null || GameMenu.transform.Find("SpaceRacePauseActions") != null)
+            {
+                return;
+            }
+
+            var column = new GameObject("SpaceRacePauseActions", typeof(RectTransform));
+            column.transform.SetParent(GameMenu.transform, false);
+            var columnRect = column.GetComponent<RectTransform>();
+            columnRect.anchorMin = new Vector2(1f, 0.5f);
+            columnRect.anchorMax = new Vector2(1f, 0.5f);
+            columnRect.pivot = new Vector2(0f, 0.5f);
+            columnRect.anchoredPosition = new Vector2(16f, 0f);
+            columnRect.sizeDelta = new Vector2(200f, 180f);
+
+            var resume = SpaceRaceWidgets.CreateButton(column.transform, "Resume", "Resume", () =>
+            {
+                GameMenu.SetActive(false);
+                if (howToPanel != null)
+                {
+                    howToPanel.SetActive(false);
+                }
+            });
+            PlacePauseButton(resume, 60f);
+
+            var howTo = SpaceRaceWidgets.CreateButton(column.transform, "HowToPlay", "How to play", ToggleHowToPlay);
+            PlacePauseButton(howTo, 0f);
+
+            var menuButtons = GameMenu.GetComponentsInChildren<Button>(true);
+            for (var i = 0; i < menuButtons.Length; i++)
+            {
+                if (menuButtons[i].gameObject.name != "Quit")
+                {
+                    continue;
+                }
+
+                var quitLabel = menuButtons[i].GetComponentInChildren<Text>();
+                if (quitLabel != null)
+                {
+                    quitLabel.text = "Leave match";
+                }
+            }
+        }
+
+        static void PlacePauseButton(Button button, float y)
+        {
+            var rect = button.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = new Vector2(0f, y);
+            rect.sizeDelta = new Vector2(190f, 44f);
+        }
+
+        void ToggleHowToPlay()
+        {
+            if (howToPanel == null)
+            {
+                var parent = GameMenu.transform.parent != null ? GameMenu.transform.parent : GameMenu.transform;
+                var panel = new GameObject("SpaceRaceHowTo", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                panel.transform.SetParent(parent, false);
+                var image = panel.GetComponent<Image>();
+                image.color = SpaceRaceTheme.Panel;
+                image.raycastTarget = true;
+                var rect = panel.GetComponent<RectTransform>();
+                SpaceRaceWidgets.Stretch(rect, new Vector2(0.18f, 0.12f), new Vector2(0.82f, 0.88f), Vector2.zero);
+                var body = SpaceRaceWidgets.CreateText(panel.transform, "Body", SpaceRaceCopy.HowToPlay, 16, SpaceRaceTheme.Text, TextAnchor.UpperLeft);
+                var bodyRect = body.rectTransform;
+                bodyRect.anchorMin = Vector2.zero;
+                bodyRect.anchorMax = Vector2.one;
+                bodyRect.offsetMin = new Vector2(24f, 24f);
+                bodyRect.offsetMax = new Vector2(-24f, -24f);
+                howToPanel = panel;
+            }
+
+            howToPanel.SetActive(!howToPanel.activeSelf);
         }
 
         // every 2 seconds perform the print()

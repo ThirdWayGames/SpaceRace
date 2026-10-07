@@ -33,7 +33,6 @@ public class GameStateManager : Photon.PunBehaviour
     public void Update()
     {
         var gameOver = false;
-        var winningTeam = string.Empty;
         var winningTeamId = 0;
 
         // Determine if the game is over and who has won.
@@ -41,7 +40,6 @@ public class GameStateManager : Photon.PunBehaviour
         if (RedCoreHealthComponent.CurrentValue <= 0 || BlueCoreHealthComponent.CurrentValue <= 0)
         {
             winningTeamId = RedCoreHealthComponent.CurrentValue > 0 ? 1 : 2;
-            winningTeam = winningTeamId == 1 ? "RED" : "BLUE";
             gameOver = true;
         } 
 
@@ -49,7 +47,7 @@ public class GameStateManager : Photon.PunBehaviour
         if (GameStateWinTimeText != null)
         {
             // Set the values
-            GameStateWinTimeText.text = string.Format("{0} TEAM WINS", winningTeam);
+            GameStateWinTimeText.text = gameOver ? SpaceRaceCopy.WinAnnouncement(winningTeamId) : string.Empty;
             GameStateWinTimeText.enabled = gameOver;
         }
 

@@ -335,7 +335,6 @@ public class GameManager3D : Photon.PunBehaviour
 
         if (!PhotonNetwork.inRoom || PhotonNetwork.room == null)
         {
-            ScheduleReturnToLobby();
             return;
         }
 
@@ -348,8 +347,6 @@ public class GameManager3D : Photon.PunBehaviour
         {
             photonView.RPC("EndGame", PhotonNetworkSettings.EventTarget, winningTeam);
         }
-
-        ScheduleReturnToLobby();
     }
 
     public void AskMasterForTeam()
@@ -408,10 +405,6 @@ public class GameManager3D : Photon.PunBehaviour
 
         if (!PhotonNetwork.inRoom || !PhotonNetwork.isMasterClient || PhotonNetwork.room == null)
         {
-            if (!PhotonNetwork.inRoom)
-            {
-                ScheduleReturnToLobby();
-            }
             return;
         }
 
@@ -419,7 +412,6 @@ public class GameManager3D : Photon.PunBehaviour
         props[MatchPhaseKey] = MatchPhaseEnded;
         props[WinningTeamKey] = team;
         PhotonNetwork.room.SetCustomProperties(props);
-        ScheduleReturnToLobby();
     }
 
     [PunRPC]
@@ -600,23 +592,23 @@ public class GameManager3D : Photon.PunBehaviour
     void ShowWinPanel(int winningTeam)
     {
         winPanelShown = true;
-        if (GameStatePanel == null)
+        if (GameStatePanel != null)
         {
-            return;
+            var winText = GameStatePanel.GetComponent<Text>();
+            if (winText == null)
+            {
+                winText = GameStatePanel.GetComponentInChildren<Text>();
+            }
+
+            if (winText != null)
+            {
+                winText.text = SpaceRaceCopy.WinAnnouncement(winningTeam);
+                winText.color = winningTeam == 1 ? SpaceRaceTheme.RedTeam : winningTeam == 2 ? SpaceRaceTheme.BlueTeam : SpaceRaceTheme.Text;
+                winText.enabled = true;
+            }
         }
 
-        var winText = GameStatePanel.GetComponent<Text>();
-        if (winText == null)
-        {
-            return;
-        }
-
-        if (winningTeam == 1 || winningTeam == 2)
-        {
-            winText.text = string.Format("{0} TEAM WINS!", winningTeam == 1 ? "RED" : "BLUE");
-        }
-
-        winText.enabled = true;
+        EnsureMatchEndChoices();
 
         if ((PhotonNetwork.isMasterClient || !PhotonNetwork.inRoom) && PrevGameCompletionTime != null)
         {
@@ -659,6 +651,71 @@ public class GameManager3D : Photon.PunBehaviour
         }
 
         return (int)PhotonNetwork.room.CustomProperties[WinningTeamKey];
+    }
+
+    Button rematchButton;
+
+    void EnsureMatchEndChoices()
+    {
+        var hostCanChoose = !PhotonNetwork.inRoom || PhotonNetwork.isMasterClient;
+        if (ReturnToLobbyBtn != null)
+        {
+            var label = ReturnToLobbyBtn.GetComponentInChildren<Text>();
+            if (label != null)
+            {
+                label.text = "Lobby";
+            }
+
+            ReturnToLobbyBtn.gameObject.SetActive(hostCanChoose);
+        }
+
+        if (rematchButton == null && ReturnToLobbyBtn != null && ReturnToLobbyBtn.transform.parent != null)
+        {
+            rematchButton = SpaceRaceWidgets.CreateButton(ReturnToLobbyBtn.transform.parent, "Rematch", "Rematch", Rematch);
+            var source = ReturnToLobbyBtn.GetComponent<RectTransform>();
+            var rect = rematchButton.GetComponent<RectTransform>();
+            if (source != null && rect != null)
+            {
+                rect.anchorMin = source.anchorMin;
+                rect.anchorMax = source.anchorMax;
+                rect.pivot = source.pivot;
+                rect.sizeDelta = source.sizeDelta;
+                rect.anchoredPosition = source.anchoredPosition + new Vector2(0f, source.sizeDelta.y + 8f);
+            }
+        }
+
+        if (rematchButton != null)
+        {
+            rematchButton.gameObject.SetActive(hostCanChoose);
+        }
+    }
+
+    public void Rematch()
+    {
+        if (PhotonNetwork.inRoom && !PhotonNetwork.isMasterClient)
+        {
+            return;
+        }
+
+        if (PhotonNetwork.inRoom && PhotonNetwork.room != null)
+        {
+            var props = new Hashtable();
+            props[MatchPhaseKey] = "Playing";
+            props[WinningTeamKey] = 0;
+            PhotonNetwork.room.SetCustomProperties(props);
+        }
+
+        matchEnded = false;
+        winPanelShown = false;
+        var scene = SceneManager.GetActiveScene().name;
+        if (PhotonNetwork.inRoom)
+        {
+            PhotonNetwork.LoadLevel(scene);
+        }
+        else
+        {
+            SceneManager.LoadScene(scene);
+        }
     }
 
     void ScheduleReturnToLobby()
