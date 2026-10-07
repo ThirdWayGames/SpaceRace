@@ -3,6 +3,16 @@ using NUnit.Framework;
 public class SpaceRaceCopyFixture
 {
     [Test]
+    public void HandIconsMatchTheEquippedWeapon()
+    {
+        Assert.AreEqual("HeavyBlaster", HandIcons.CatalogKey("HeavyBlaster(Clone)"));
+        Assert.AreEqual("PathogenBlaster", HandIcons.CatalogKey("PathogenBlasterLeft"));
+        Assert.AreEqual("EnergyRecharger", HandIcons.CatalogKey("EnergyBlaster"));
+        Assert.AreEqual("MediRay", HandIcons.CatalogKey("HealBlaster"));
+        Assert.AreEqual("LightBlaster", HandIcons.CatalogKey("LightDroidBlaster"));
+    }
+
+    [Test]
     public void SoloHostCanLaunchWithoutAReadyCrew()
     {
         Assert.IsTrue(LobbyManager.HostCanLaunch(true, 1, false));

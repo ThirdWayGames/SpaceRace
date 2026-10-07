@@ -270,23 +270,13 @@ namespace Assets
                 }
             }
 
-            if (FireModeSingle != null && FireModeCloud != null && FireModeBeam != null)
+            if (ObservedPlayer != null)
             {
-                if (ObservedPlayer != null)
+                var equipment = ObservedPlayer.GetComponent<EquipmentComponent>();
+                if (equipment != null)
                 {
-                    var equipment = ObservedPlayer.GetComponent<EquipmentComponent>();
-                    if (equipment != null)
-                    {
-                        if (LeftEquipmentFireMode != null && equipment.LeftHand != null)
-                        {
-                            ApplyFireMode(LeftEquipmentFireMode, equipment.LeftHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>());
-                        }
-
-                        if (RightEquipmentFireMode != null && equipment.RightHand != null)
-                        {
-                            ApplyFireMode(RightEquipmentFireMode, equipment.RightHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>());
-                        }
-                    }
+                    ApplyHandIcon(LeftEquipmentFireMode, equipment.LeftHand);
+                    ApplyHandIcon(RightEquipmentFireMode, equipment.RightHand);
                 }
             }
 
@@ -356,24 +346,21 @@ namespace Assets
             }
         }
 
-        void ApplyFireMode(Image target, Assets.Scripts.GameObjects.Weapon weapon)
+        static void ApplyHandIcon(Image target, GameObject hand)
         {
-            if (target == null || weapon == null)
+            if (target == null)
             {
                 return;
             }
 
-            switch (weapon.CurrentFireMode)
+            var held = hand == null ? null : hand.GetComponentInChildren<Assets.Scripts.GameObjects.Equipment>();
+            var sprite = HandIcons.ForEquipment(held);
+            target.preserveAspect = true;
+            target.color = Color.white;
+            target.enabled = sprite != null;
+            if (sprite != null && target.sprite != sprite)
             {
-                case Scripts.Enums.FireMode.Single:
-                    target.sprite = FireModeSingle;
-                    break;
-                case Scripts.Enums.FireMode.Cloud:
-                    target.sprite = FireModeCloud;
-                    break;
-                case Scripts.Enums.FireMode.Beam:
-                    target.sprite = FireModeBeam;
-                    break;
+                target.sprite = sprite;
             }
         }
 
