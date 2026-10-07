@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 
 public static class SpaceRaceCopy
 {
@@ -122,6 +123,23 @@ public static class SpaceRaceCopy
             default:
                 return null;
         }
+    }
+
+    public const string RespawnLabel = "RESPAWNING:";
+
+    public static string FormatRespawnCountdown(float seconds)
+    {
+        if (float.IsNaN(seconds) || seconds < 0f)
+        {
+            seconds = 0f;
+        }
+
+        if (seconds > 99.99f)
+        {
+            seconds = 99.99f;
+        }
+
+        return seconds.ToString("00.00", CultureInfo.InvariantCulture);
     }
 
     public static string Rewrite(string value)

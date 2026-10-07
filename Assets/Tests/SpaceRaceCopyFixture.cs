@@ -23,6 +23,17 @@ public class SpaceRaceCopyFixture
     }
 
     [Test]
+    public void RespawnCountdownKeepsAFixedWidth()
+    {
+        Assert.AreEqual("RESPAWNING:", SpaceRaceCopy.RespawnLabel);
+        Assert.AreEqual("04.00", SpaceRaceCopy.FormatRespawnCountdown(4f));
+        Assert.AreEqual("10.00", SpaceRaceCopy.FormatRespawnCountdown(10f));
+        Assert.AreEqual("00.00", SpaceRaceCopy.FormatRespawnCountdown(-2f));
+        Assert.AreEqual(5, SpaceRaceCopy.FormatRespawnCountdown(4f).Length);
+        Assert.AreEqual(SpaceRaceCopy.FormatRespawnCountdown(4f).Length, SpaceRaceCopy.FormatRespawnCountdown(30f).Length);
+    }
+
+    [Test]
     public void TimeRemainingPadsMinutesAndSeconds()
     {
         Assert.AreEqual("TIME: 00:05", SpaceRaceCopy.FormatTimeRemaining(5));
