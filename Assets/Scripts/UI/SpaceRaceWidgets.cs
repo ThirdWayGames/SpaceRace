@@ -59,6 +59,32 @@ public static class SpaceRaceWidgets
         rect.sizeDelta = size;
     }
 
+    public static GameObject CreateHowToCard(Transform parent, Action onClose)
+    {
+        var image = CreatePanel(parent, "SpaceRaceHowTo", SpaceRaceTheme.Panel);
+        var panel = image.gameObject;
+        var rect = panel.GetComponent<RectTransform>();
+        Stretch(rect, new Vector2(0.08f, 0.04f), new Vector2(0.92f, 0.97f), Vector2.zero);
+        panel.AddComponent<RectMask2D>();
+
+        var body = CreateText(panel.transform, "Body", SpaceRaceCopy.HowToPlay, 14, SpaceRaceTheme.Text, TextAnchor.UpperLeft);
+        body.lineSpacing = 0.85f;
+        var bodyRect = body.rectTransform;
+        bodyRect.anchorMin = Vector2.zero;
+        bodyRect.anchorMax = Vector2.one;
+        bodyRect.offsetMin = new Vector2(28f, 18f);
+        bodyRect.offsetMax = new Vector2(-28f, -58f);
+
+        var close = CreateButton(panel.transform, "CloseHowTo", "Close", onClose);
+        var closeRect = close.GetComponent<RectTransform>();
+        closeRect.anchorMin = new Vector2(1f, 1f);
+        closeRect.anchorMax = new Vector2(1f, 1f);
+        closeRect.pivot = new Vector2(1f, 1f);
+        closeRect.anchoredPosition = new Vector2(-14f, -12f);
+        closeRect.sizeDelta = new Vector2(120f, 32f);
+        return panel;
+    }
+
     public static Image CreatePanel(Transform parent, string name, Color color)
     {
         var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));

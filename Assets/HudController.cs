@@ -571,17 +571,8 @@ namespace Assets
             if (howToPanel == null)
             {
                 var parent = GameMenu.transform.parent != null ? GameMenu.transform.parent : GameMenu.transform;
-                var image = SpaceRaceWidgets.CreatePanel(parent, "SpaceRaceHowTo", SpaceRaceTheme.Panel);
-                var panel = image.gameObject;
-                var rect = panel.GetComponent<RectTransform>();
-                SpaceRaceWidgets.Stretch(rect, new Vector2(0.18f, 0.12f), new Vector2(0.82f, 0.88f), Vector2.zero);
-                var body = SpaceRaceWidgets.CreateText(panel.transform, "Body", SpaceRaceCopy.HowToPlay, 16, SpaceRaceTheme.Text, TextAnchor.UpperLeft);
-                var bodyRect = body.rectTransform;
-                bodyRect.anchorMin = Vector2.zero;
-                bodyRect.anchorMax = Vector2.one;
-                bodyRect.offsetMin = new Vector2(24f, 24f);
-                bodyRect.offsetMax = new Vector2(-24f, -24f);
-                howToPanel = panel;
+                howToPanel = SpaceRaceWidgets.CreateHowToCard(parent, ToggleHowToPlay);
+                return;
             }
 
             howToPanel.SetActive(!howToPanel.activeSelf);

@@ -407,23 +407,7 @@ public class LobbyManager : Photon.PunBehaviour
                 return;
             }
 
-            var image = SpaceRaceWidgets.CreatePanel(canvasObject.transform, "SpaceRaceHowTo", SpaceRaceTheme.Panel);
-            var panel = image.gameObject;
-            var rect = panel.GetComponent<RectTransform>();
-            SpaceRaceWidgets.Stretch(rect, new Vector2(0.22f, 0.42f), new Vector2(0.78f, 0.86f), Vector2.zero);
-            var body = SpaceRaceWidgets.CreateText(panel.transform, "Body", SpaceRaceCopy.HowToPlay, 16, SpaceRaceTheme.Text, TextAnchor.UpperLeft);
-            var bodyRect = body.rectTransform;
-            bodyRect.anchorMin = Vector2.zero;
-            bodyRect.anchorMax = Vector2.one;
-            bodyRect.offsetMin = new Vector2(24f, 56f);
-            bodyRect.offsetMax = new Vector2(-24f, -16f);
-            var close = SpaceRaceWidgets.CreateButton(panel.transform, "CloseHowTo", "Close", ToggleHowToPlay);
-            var closeRect = close.GetComponent<RectTransform>();
-            closeRect.anchorMin = new Vector2(0.5f, 0f);
-            closeRect.anchorMax = new Vector2(0.5f, 0f);
-            closeRect.pivot = new Vector2(0.5f, 0f);
-            closeRect.anchoredPosition = new Vector2(0f, 12f);
-            closeRect.sizeDelta = new Vector2(140f, 32f);
+            var panel = SpaceRaceWidgets.CreateHowToCard(canvasObject.transform, ToggleHowToPlay);
             panel.transform.SetAsLastSibling();
             howToPanel = panel;
             howToBuilt = true;
