@@ -308,19 +308,31 @@ public class LobbyManager : Photon.PunBehaviour
         }
 
         var isMaster = PhotonNetwork.player != null && PhotonNetwork.player.IsMasterClient;
+        var playerCount = PhotonNetwork.playerList == null ? 0 : PhotonNetwork.playerList.Length;
         var crewReady = AllPlayersReady();
+        var canLaunch = HostCanLaunch(isMaster, playerCount, crewReady);
 
         // Make sure the game object is active.
         LaunchButton.gameObject.SetActive(isMaster);
 
-        // And the button is enabled only when every connected player is ready.
+        // A solo host can launch immediately. A larger crew waits until everyone is ready.
         LaunchButton.enabled = isMaster;
-        LaunchButton.interactable = isMaster && crewReady;
+        LaunchButton.interactable = canLaunch;
 
         if (waitingText != null)
         {
-            waitingText.gameObject.SetActive(!crewReady);
+            waitingText.gameObject.SetActive(isMaster && playerCount > 1 && !crewReady);
         }
+    }
+
+    public static bool HostCanLaunch(bool isMaster, int playerCount, bool crewReady)
+    {
+        if (!isMaster)
+        {
+            return false;
+        }
+
+        return playerCount <= 1 || crewReady;
     }
 
     static bool AllPlayersReady()
@@ -356,25 +368,23 @@ public class LobbyManager : Photon.PunBehaviour
         }
 
         var canvas = canvasObject.transform;
-        if (canvas.Find("HowToPlay") == null)
-        {
-            var howTo = SpaceRaceWidgets.CreateButton(canvas, "HowToPlay", "How to play", ToggleHowToPlay);
-            var howRect = howTo.GetComponent<RectTransform>();
-            howRect.anchorMin = new Vector2(0.38f, 0.02f);
-            howRect.anchorMax = new Vector2(0.62f, 0.1f);
-            howRect.offsetMin = Vector2.zero;
-            howRect.offsetMax = Vector2.zero;
-        }
+        var howToTransform = canvas.Find("HowToPlay");
+        var howTo = howToTransform != null
+            ? howToTransform.GetComponent<Button>()
+            : SpaceRaceWidgets.CreateButton(canvas, "HowToPlay", "How to play", ToggleHowToPlay);
+        PlaceCornerButton(howTo);
 
         if (waitingText == null)
         {
             waitingText = SpaceRaceWidgets.CreateText(canvas, "WaitingForCrew", SpaceRaceCopy.WaitingForCrew, 16, SpaceRaceTheme.Orange, TextAnchor.MiddleCenter);
-            var waitRect = waitingText.rectTransform;
-            waitRect.anchorMin = new Vector2(0.18f, 0.1f);
-            waitRect.anchorMax = new Vector2(0.82f, 0.17f);
-            waitRect.offsetMin = Vector2.zero;
-            waitRect.offsetMax = Vector2.zero;
         }
+
+        var waitRect = waitingText.rectTransform;
+        waitRect.anchorMin = new Vector2(0.18f, 0.9f);
+        waitRect.anchorMax = new Vector2(0.72f, 0.97f);
+        waitRect.offsetMin = Vector2.zero;
+        waitRect.offsetMax = Vector2.zero;
+        waitingText.gameObject.SetActive(false);
 
         var objective = GameObject.Find("LocateText");
         if (objective != null)
@@ -397,17 +407,24 @@ public class LobbyManager : Photon.PunBehaviour
                 return;
             }
 
-            var panel = new GameObject("SpaceRaceHowTo", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            panel.transform.SetParent(canvasObject.transform, false);
-            panel.GetComponent<Image>().color = SpaceRaceTheme.Panel;
+            var image = SpaceRaceWidgets.CreatePanel(canvasObject.transform, "SpaceRaceHowTo", SpaceRaceTheme.Panel);
+            var panel = image.gameObject;
             var rect = panel.GetComponent<RectTransform>();
-            SpaceRaceWidgets.Stretch(rect, new Vector2(0.14f, 0.18f), new Vector2(0.86f, 0.9f), Vector2.zero);
+            SpaceRaceWidgets.Stretch(rect, new Vector2(0.22f, 0.42f), new Vector2(0.78f, 0.86f), Vector2.zero);
             var body = SpaceRaceWidgets.CreateText(panel.transform, "Body", SpaceRaceCopy.HowToPlay, 16, SpaceRaceTheme.Text, TextAnchor.UpperLeft);
             var bodyRect = body.rectTransform;
             bodyRect.anchorMin = Vector2.zero;
             bodyRect.anchorMax = Vector2.one;
-            bodyRect.offsetMin = new Vector2(28f, 28f);
-            bodyRect.offsetMax = new Vector2(-28f, -28f);
+            bodyRect.offsetMin = new Vector2(24f, 56f);
+            bodyRect.offsetMax = new Vector2(-24f, -16f);
+            var close = SpaceRaceWidgets.CreateButton(panel.transform, "CloseHowTo", "Close", ToggleHowToPlay);
+            var closeRect = close.GetComponent<RectTransform>();
+            closeRect.anchorMin = new Vector2(0.5f, 0f);
+            closeRect.anchorMax = new Vector2(0.5f, 0f);
+            closeRect.pivot = new Vector2(0.5f, 0f);
+            closeRect.anchoredPosition = new Vector2(0f, 12f);
+            closeRect.sizeDelta = new Vector2(140f, 32f);
+            panel.transform.SetAsLastSibling();
             howToPanel = panel;
             howToBuilt = true;
             return;
@@ -416,7 +433,27 @@ public class LobbyManager : Photon.PunBehaviour
         if (howToPanel != null)
         {
             howToPanel.SetActive(!howToPanel.activeSelf);
+            if (howToPanel.activeSelf)
+            {
+                howToPanel.transform.SetAsLastSibling();
+            }
         }
+    }
+
+    static void PlaceCornerButton(Button button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        var rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(1f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(1f, 1f);
+        rect.anchoredPosition = new Vector2(-16f, -16f);
+        rect.sizeDelta = new Vector2(168f, 36f);
+        button.transform.SetAsLastSibling();
     }
 
     [PunRPC]

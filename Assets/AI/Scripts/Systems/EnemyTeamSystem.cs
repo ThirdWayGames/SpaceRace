@@ -79,30 +79,31 @@ public class EnemyTeamSystem : ComponentSystem
     /// </summary>
     public void GetTeamMaterials()
     {
-        if (GameManager3D.instance != null)
+        var manager = Object.FindObjectOfType<GameManager3D>();
+        if (manager == null)
         {
-            TeamMaterialColours = new Dictionary<int, Material>();
+            return;
+        }
 
-            // Set red
-            var redMarine = GameManager3D.instance.RedMarinePrefab;
-            if (redMarine != null)
+        TeamMaterialColours = new Dictionary<int, Material>();
+
+        var redMarine = manager.RedMarinePrefab;
+        if (redMarine != null)
+        {
+            var material = GetPrefabMaterial(redMarine);
+            if (material != null)
             {
-                var material = GetPrefabMaterial(redMarine);
-                if (material != null)
-                {
-                    TeamMaterialColours[1] = material;
-                }
+                TeamMaterialColours[1] = material;
             }
+        }
 
-            // set blue
-            var blueMarine = GameManager3D.instance.BlueMarinePrefab;
-            if (blueMarine != null)
+        var blueMarine = manager.BlueMarinePrefab;
+        if (blueMarine != null)
+        {
+            var material = GetPrefabMaterial(blueMarine);
+            if (material != null)
             {
-                var material = GetPrefabMaterial(blueMarine);
-                if (material != null)
-                {
-                    TeamMaterialColours[2] = material;
-                }
+                TeamMaterialColours[2] = material;
             }
         }
     }

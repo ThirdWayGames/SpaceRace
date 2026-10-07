@@ -3,6 +3,16 @@ using NUnit.Framework;
 public class SpaceRaceCopyFixture
 {
     [Test]
+    public void SoloHostCanLaunchWithoutAReadyCrew()
+    {
+        Assert.IsTrue(LobbyManager.HostCanLaunch(true, 1, false));
+        Assert.IsTrue(LobbyManager.HostCanLaunch(true, 0, false));
+        Assert.IsFalse(LobbyManager.HostCanLaunch(true, 2, false));
+        Assert.IsTrue(LobbyManager.HostCanLaunch(true, 2, true));
+        Assert.IsFalse(LobbyManager.HostCanLaunch(false, 1, true));
+    }
+
+    [Test]
     public void TimeRemainingPadsMinutesAndSeconds()
     {
         Assert.AreEqual("TIME: 00:05", SpaceRaceCopy.FormatTimeRemaining(5));

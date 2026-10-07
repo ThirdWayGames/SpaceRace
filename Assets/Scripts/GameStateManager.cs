@@ -14,12 +14,13 @@ public class GameStateManager : Photon.PunBehaviour
 
     public void Awake()
     {
-        if (RedCoreHealthComponent == null)
+        var coresAssigned = RedCoreHealthComponent != null || BlueCoreHealthComponent != null;
+        if (coresAssigned && RedCoreHealthComponent == null)
         {
             Debug.LogErrorFormat("RedCoreHealthComponent property is not set for '{0}'", this.name);
         }
 
-        if (BlueCoreHealthComponent == null)
+        if (coresAssigned && BlueCoreHealthComponent == null)
         {
             Debug.LogErrorFormat("BlueCoreHealthComponent property is not set for '{0}'", this.name);
         }
@@ -32,6 +33,11 @@ public class GameStateManager : Photon.PunBehaviour
 
     public void Update()
     {
+        if (RedCoreHealthComponent == null || BlueCoreHealthComponent == null)
+        {
+            return;
+        }
+
         var gameOver = false;
         var winningTeamId = 0;
 

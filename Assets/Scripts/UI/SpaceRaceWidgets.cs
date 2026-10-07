@@ -30,9 +30,9 @@ public static class SpaceRaceWidgets
         var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
         go.transform.SetParent(parent, false);
         var image = go.GetComponent<Image>();
+        image.sprite = WhiteSprite();
+        image.type = Image.Type.Simple;
         image.color = Color.white;
-        image.sprite = BuiltinSprite();
-        image.type = Image.Type.Sliced;
         var button = go.GetComponent<Button>();
         button.targetGraphic = image;
         SpaceRaceTheme.StyleSelectable(button);
@@ -59,14 +59,39 @@ public static class SpaceRaceWidgets
         rect.sizeDelta = size;
     }
 
-    static Sprite BuiltinSprite()
+    public static Image CreatePanel(Transform parent, string name, Color color)
     {
-        var sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
-        if (sprite == null)
+        var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        go.transform.SetParent(parent, false);
+        var image = go.GetComponent<Image>();
+        image.sprite = WhiteSprite();
+        image.type = Image.Type.Simple;
+        image.color = color;
+        image.raycastTarget = true;
+        return image;
+    }
+
+    static Sprite whiteSprite;
+
+    public static Sprite WhiteSprite()
+    {
+        if (whiteSprite != null)
         {
-            sprite = Resources.GetBuiltinResource<Sprite>("UISprite");
+            return whiteSprite;
         }
 
-        return sprite;
+        var texture = new Texture2D(4, 4, TextureFormat.RGBA32, false);
+        var pixels = new Color[16];
+        for (var i = 0; i < pixels.Length; i++)
+        {
+            pixels[i] = Color.white;
+        }
+
+        texture.SetPixels(pixels);
+        texture.Apply();
+        texture.name = "SpaceRaceWhite";
+        whiteSprite = Sprite.Create(texture, new Rect(0f, 0f, 4f, 4f), new Vector2(0.5f, 0.5f), 100f);
+        whiteSprite.name = "SpaceRaceWhite";
+        return whiteSprite;
     }
 }

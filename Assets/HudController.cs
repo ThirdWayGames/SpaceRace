@@ -571,11 +571,8 @@ namespace Assets
             if (howToPanel == null)
             {
                 var parent = GameMenu.transform.parent != null ? GameMenu.transform.parent : GameMenu.transform;
-                var panel = new GameObject("SpaceRaceHowTo", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-                panel.transform.SetParent(parent, false);
-                var image = panel.GetComponent<Image>();
-                image.color = SpaceRaceTheme.Panel;
-                image.raycastTarget = true;
+                var image = SpaceRaceWidgets.CreatePanel(parent, "SpaceRaceHowTo", SpaceRaceTheme.Panel);
+                var panel = image.gameObject;
                 var rect = panel.GetComponent<RectTransform>();
                 SpaceRaceWidgets.Stretch(rect, new Vector2(0.18f, 0.12f), new Vector2(0.82f, 0.88f), Vector2.zero);
                 var body = SpaceRaceWidgets.CreateText(panel.transform, "Body", SpaceRaceCopy.HowToPlay, 16, SpaceRaceTheme.Text, TextAnchor.UpperLeft);
