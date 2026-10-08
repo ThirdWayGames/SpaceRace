@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using Assets.Scripts;
+using Assets.Scripts.Components;
 using Assets.Scripts.Interfaces;
 
 using UnityEngine;
@@ -272,9 +274,17 @@ public class PlayerManager3D : Photon.MonoBehaviour
                 spawnLoc.Spawned(playerController);
                 PlayerAlive = true;
             }
+
+            RestoreSpawnEnergy(player);
+            StartCoroutine(RestoreEnergyAfterSpawn(player));
         }
 
         LocalPlayerInstance = player;
+        var hud = FindObjectOfType<Assets.HudController>();
+        if (hud != null)
+        {
+            hud.SetObservedPlayer(player);
+        }
         spawnRequested = false;
         spawnRpcSent = false;
         if (player == null)
@@ -318,6 +328,45 @@ public class PlayerManager3D : Photon.MonoBehaviour
 
             // Reset the local player instance as its been destroyed.
             LocalPlayerInstance = null;
+        }
+    }
+
+    static void RestoreSpawnEnergy(GameObject player)
+    {
+        if (player == null)
+        {
+            return;
+        }
+
+        var energy = player.GetComponent<EnergyComponent>();
+        if (energy == null)
+        {
+            var view = player.GetComponent<PhotonView>();
+            if (view != null && PhotonNetwork.inRoom && !view.isMine)
+            {
+                return;
+            }
+
+            energy = player.AddComponent<EnergyComponent>();
+            energy.MaxValue = 100f;
+        }
+
+        energy.CurrentValue = SpawnVitals.RestoredEnergy(energy.CurrentValue, energy.MaxValue);
+    }
+
+    IEnumerator RestoreEnergyAfterSpawn(GameObject player)
+    {
+        yield return null;
+        RestoreSpawnEnergy(player);
+        if (player == null)
+        {
+            yield break;
+        }
+
+        var hud = FindObjectOfType<Assets.HudController>();
+        if (hud != null)
+        {
+            hud.SetObservedPlayer(player);
         }
     }
 

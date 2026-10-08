@@ -199,9 +199,11 @@ namespace Assets
 
         public void Update()
         {
-            if (ObservedPlayer == null)
+            var manager = PlayerManager3D.Get();
+            var localPlayer = manager != null ? manager.LocalPlayerInstance : null;
+            if (ObservedPlayer != localPlayer)
             {
-                SetObservedPlayer(PlayerManager3D.Get().LocalPlayerInstance);
+                SetObservedPlayer(localPlayer);
             }
 
             if (StaminaSlider != null && StaminaComponent != null)
@@ -316,24 +318,55 @@ namespace Assets
 
         public void SetObservedPlayer(GameObject player = null)
         {
-            if (ObservedPlayer == null)
+            if (player == null)
             {
-                if (player != null)
-                { 
-                    ObservedPlayer = player;
-                }
-                else
-                {
-                    Debug.LogWarning("No observed player in the HUD controller and no Local player to use instead.");
-                }
+                var manager = PlayerManager3D.Get();
+                player = manager != null ? manager.LocalPlayerInstance : null;
             }
 
-            if (ObservedPlayer != null)
+            if (player == ObservedPlayer && EnergyComponent != null)
             {
-                StaminaComponent = ObservedPlayer.GetComponent<StaminaComponent>();
-                HealthComponent = ObservedPlayer.GetComponent<HealthComponent>();
-                EnergyComponent = ObservedPlayer.GetComponent<EnergyComponent>();
+                PushSlider(EnergySlider, EnergyComponent);
+                return;
             }
+
+            ObservedPlayer = player;
+            StaminaComponent = null;
+            HealthComponent = null;
+            EnergyComponent = null;
+            if (ObservedPlayer == null)
+            {
+                return;
+            }
+
+            StaminaComponent = ObservedPlayer.GetComponent<StaminaComponent>();
+            HealthComponent = ObservedPlayer.GetComponent<HealthComponent>();
+            EnergyComponent = ObservedPlayer.GetComponent<EnergyComponent>();
+            PushSlider(StaminaSlider, StaminaComponent);
+            PushSlider(HealthSlider, HealthComponent);
+            PushSlider(EnergySlider, EnergyComponent);
+        }
+
+        static void PushSlider(Slider slider, MutatableComponent vital)
+        {
+            if (slider == null || vital == null)
+            {
+                return;
+            }
+
+            var max = vital.MaxValue < 100f ? 100f : vital.MaxValue;
+            if (slider.maxValue != max)
+            {
+                slider.maxValue = max;
+            }
+
+            var current = vital.CurrentValue;
+            if (Mathf.Approximately(slider.value, current))
+            {
+                slider.value = current > 0f ? 0f : 1f;
+            }
+
+            slider.value = current;
         }
 
         [PunRPC]

@@ -100,6 +100,7 @@ public static class SpaceRaceTheme
         for (var i = 0; i < images.Length; i++)
         {
             StylePanel(images[i]);
+            HideDormantOverlay(images[i]);
         }
     }
 
@@ -254,6 +255,11 @@ public static class SpaceRaceTheme
             return;
         }
 
+        if (image.color.a <= 0.02f || CoversParent(image.rectTransform))
+        {
+            return;
+        }
+
         var name = image.gameObject.name;
         if (name.IndexOf("Team", System.StringComparison.Ordinal) >= 0)
         {
@@ -267,6 +273,36 @@ public static class SpaceRaceTheme
         }
 
         image.color = Panel;
+    }
+
+    public static bool CoversParent(RectTransform rect)
+    {
+        if (rect == null)
+        {
+            return false;
+        }
+
+        return SpawnVitals.ShouldHideOverlay(0f, rect.anchorMin.x, rect.anchorMin.y, rect.anchorMax.x, rect.anchorMax.y);
+    }
+
+    public static void HideDormantOverlay(Image image)
+    {
+        if (image == null || image.GetComponent<Selectable>() != null)
+        {
+            return;
+        }
+
+        var rect = image.rectTransform;
+        if (rect == null || !SpawnVitals.ShouldHideOverlay(image.color.a, rect.anchorMin.x, rect.anchorMin.y, rect.anchorMax.x, rect.anchorMax.y))
+        {
+            return;
+        }
+
+        image.enabled = false;
+        if (image.canvasRenderer != null)
+        {
+            image.canvasRenderer.cullTransparentMesh = true;
+        }
     }
 
     public static bool IsBuiltInSprite(Sprite sprite)

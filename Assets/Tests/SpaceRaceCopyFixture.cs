@@ -96,6 +96,18 @@ public class SpaceRaceCopyFixture
     }
 
     [Test]
+    public void RespawnRestoresEmptyEnergyAndHidesTheStartupVeil()
+    {
+        Assert.AreEqual(100f, SpawnVitals.RestoredEnergy(0f, 100f));
+        Assert.AreEqual(100f, SpawnVitals.RestoredEnergy(100f, 100f));
+        Assert.AreEqual(40f, SpawnVitals.RestoredEnergy(40f, 100f));
+        Assert.AreEqual(100f, SpawnVitals.RestoredEnergy(140f, 100f));
+        Assert.IsTrue(SpawnVitals.ShouldHideOverlay(0f, 0f, 0f, 1f, 1f));
+        Assert.IsFalse(SpawnVitals.ShouldHideOverlay(0.92f, 0f, 0f, 1f, 1f));
+        Assert.IsFalse(SpawnVitals.ShouldHideOverlay(0f, 0.2f, 0.2f, 0.4f, 0.5f));
+    }
+
+    [Test]
     public void HowToCardHugsTheInstructions()
     {
         var fitted = SpaceRaceWidgets.HowToCardSize(594f, 400f, 1920f);
