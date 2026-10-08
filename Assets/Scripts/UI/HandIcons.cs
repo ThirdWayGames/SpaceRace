@@ -14,6 +14,13 @@ public static class HandIcons
             return null;
         }
 
+        var key = CatalogKey(equipment.gameObject.name);
+        var hud = LoadHud(key);
+        if (hud != null)
+        {
+            return hud;
+        }
+
         if (equipment.EquipmentIconUI != null)
         {
             return equipment.EquipmentIconUI;
@@ -24,7 +31,6 @@ public static class HandIcons
             return equipment.EquipmentIconMap;
         }
 
-        var key = CatalogKey(equipment.gameObject.name);
         var sprite = Load(key);
         if (sprite != null)
         {
@@ -131,6 +137,25 @@ public static class HandIcons
 
         sprite = Resources.Load<Sprite>("HandIcons/" + name);
         Cache[name] = sprite;
+        return sprite;
+    }
+
+    static Sprite LoadHud(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return null;
+        }
+
+        var cacheKey = "hud:" + name;
+        Sprite sprite;
+        if (Cache.TryGetValue(cacheKey, out sprite))
+        {
+            return sprite;
+        }
+
+        sprite = Resources.Load<Sprite>("HandIcons/Hud/" + name);
+        Cache[cacheKey] = sprite;
         return sprite;
     }
 }
