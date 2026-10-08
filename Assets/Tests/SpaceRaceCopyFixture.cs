@@ -118,4 +118,18 @@ public class SpaceRaceCopyFixture
         var capped = SpaceRaceWidgets.HowToCardSize(1400f, 400f, 1920f);
         Assert.AreEqual(760f, capped.x, 0.1f);
     }
+
+    [Test]
+    public void ConsoleTipKeepsTheLockedMessageOnOneLine()
+    {
+        Assert.AreEqual(196f, ConsoleTipLayout.TextWidth(172f, "!! CONSOLE LOCKED !!".Length));
+        Assert.AreEqual(224f, ConsoleTipLayout.TextWidth(90f, "!! CONSOLE LOCKED !!".Length));
+        Assert.AreEqual(224f, ConsoleTipLayout.TextWidth(0f, "!! CONSOLE LOCKED !!".Length));
+        Assert.AreEqual(214f, ConsoleTipLayout.TextWidth(float.NaN, "!! ACCESS DENIED !!".Length));
+        Assert.AreEqual(224f, ConsoleTipLayout.TextWidth(800f, "!! CONSOLE LOCKED !!".Length));
+
+        var widened = ConsoleTipLayout.CanvasWidth(196f, 0.05f, 2f, 10f);
+        Assert.AreEqual(19.6f, widened, 0.001f);
+        Assert.AreEqual(10f, ConsoleTipLayout.CanvasWidth(40f, 0.05f, 2f, 10f));
+    }
 }
