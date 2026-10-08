@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEngine;
 
 public class SpaceRaceCopyFixture
 {
@@ -92,5 +93,17 @@ public class SpaceRaceCopyFixture
         Assert.IsTrue(SpaceRaceCopy.HowToPlay.Contains("FIGHT"));
         Assert.IsTrue(SpaceRaceCopy.HowToPlay.Contains("CONSOLES"));
         Assert.IsTrue(SpaceRaceCopy.HowToPlay.Contains("MAP"));
+    }
+
+    [Test]
+    public void HowToCardHugsTheInstructions()
+    {
+        var fitted = SpaceRaceWidgets.HowToCardSize(594f, 400f, 1920f);
+        Assert.Greater(fitted.x, 600f);
+        Assert.Less(fitted.x, 760f);
+        Assert.AreEqual(474f, fitted.y, 0.1f);
+
+        var capped = SpaceRaceWidgets.HowToCardSize(1400f, 400f, 1920f);
+        Assert.AreEqual(760f, capped.x, 0.1f);
     }
 }

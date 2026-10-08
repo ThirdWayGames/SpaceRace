@@ -59,21 +59,79 @@ public static class SpaceRaceWidgets
         rect.sizeDelta = size;
     }
 
+    public const float HowToPadX = 28f;
+
+    public const float HowToPadTop = 52f;
+
+    public const float HowToPadBottom = 22f;
+
+    public static Vector2 HowToCardSize(float preferredTextWidth, float preferredTextHeight, float parentWidth)
+    {
+        var textWidth = preferredTextWidth < 40f ? 560f : preferredTextWidth;
+        var cardWidth = textWidth + HowToPadX * 2f;
+        var maxWidth = parentWidth > 320f ? parentWidth * 0.7f : 760f;
+        if (maxWidth > 760f)
+        {
+            maxWidth = 760f;
+        }
+
+        if (maxWidth < 420f)
+        {
+            maxWidth = 420f;
+        }
+
+        if (cardWidth > maxWidth)
+        {
+            cardWidth = maxWidth;
+        }
+
+        if (cardWidth < 420f)
+        {
+            cardWidth = 420f;
+        }
+
+        var textHeight = preferredTextHeight;
+        if (textHeight < 64f)
+        {
+            textHeight = 432f;
+        }
+
+        return new Vector2(cardWidth, HowToPadTop + textHeight + HowToPadBottom);
+    }
+
     public static GameObject CreateHowToCard(Transform parent, Action onClose)
     {
         var image = CreatePanel(parent, "SpaceRaceHowTo", SpaceRaceTheme.Panel);
         var panel = image.gameObject;
         var rect = panel.GetComponent<RectTransform>();
-        Stretch(rect, new Vector2(0.08f, 0.04f), new Vector2(0.92f, 0.97f), Vector2.zero);
-        panel.AddComponent<RectMask2D>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
 
-        var body = CreateText(panel.transform, "Body", SpaceRaceCopy.HowToPlay, 14, SpaceRaceTheme.Text, TextAnchor.UpperLeft);
-        body.lineSpacing = 0.85f;
+        var body = CreateText(panel.transform, "Body", SpaceRaceCopy.HowToPlay, 16, SpaceRaceTheme.Text, TextAnchor.UpperLeft);
+        body.lineSpacing = 1f;
+        body.horizontalOverflow = HorizontalWrapMode.Overflow;
+        body.verticalOverflow = VerticalWrapMode.Overflow;
+
+        var parentRect = parent as RectTransform;
+        var parentWidth = parentRect != null ? parentRect.rect.width : 0f;
+        var size = HowToCardSize(body.preferredWidth, 0f, parentWidth);
+        var textWidth = size.x - HowToPadX * 2f;
+
         var bodyRect = body.rectTransform;
-        bodyRect.anchorMin = Vector2.zero;
-        bodyRect.anchorMax = Vector2.one;
-        bodyRect.offsetMin = new Vector2(28f, 18f);
-        bodyRect.offsetMax = new Vector2(-28f, -58f);
+        bodyRect.anchorMin = new Vector2(0f, 1f);
+        bodyRect.anchorMax = new Vector2(0f, 1f);
+        bodyRect.pivot = new Vector2(0f, 1f);
+        bodyRect.anchoredPosition = new Vector2(HowToPadX, -HowToPadTop);
+        body.horizontalOverflow = HorizontalWrapMode.Wrap;
+        bodyRect.sizeDelta = new Vector2(textWidth, 10f);
+        var textHeight = body.preferredHeight + 8f;
+        size = HowToCardSize(textWidth, textHeight, parentWidth);
+        textWidth = size.x - HowToPadX * 2f;
+        textHeight = size.y - HowToPadTop - HowToPadBottom;
+        bodyRect.sizeDelta = new Vector2(textWidth, textHeight);
+        rect.sizeDelta = size;
 
         var close = CreateButton(panel.transform, "CloseHowTo", "Close", onClose);
         var closeRect = close.GetComponent<RectTransform>();
