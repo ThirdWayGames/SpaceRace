@@ -32,6 +32,16 @@ public class SpaceRaceCopyFixture
         Assert.AreEqual("00.00", SpaceRaceCopy.FormatRespawnCountdown(-2f));
         Assert.AreEqual(5, SpaceRaceCopy.FormatRespawnCountdown(4f).Length);
         Assert.AreEqual(SpaceRaceCopy.FormatRespawnCountdown(4f).Length, SpaceRaceCopy.FormatRespawnCountdown(30f).Length);
+
+        float labelRight;
+        float digitsLeft;
+        SpaceRaceCopy.CenterRespawnReadout(900f, 390f, 16f, out labelRight, out digitsLeft);
+        var leftEdge = labelRight - 900f;
+        var rightEdge = digitsLeft + 390f;
+        Assert.AreEqual(0f, leftEdge + rightEdge, 0.01f);
+        Assert.Less(System.Math.Abs(leftEdge), 800f);
+        Assert.AreEqual(110, SpaceRaceCopy.FitRespawnFontSize(110, 1300f, 1920f, 48f));
+        Assert.Less(SpaceRaceCopy.FitRespawnFontSize(110, 1400f, 1280f, 48f), 110);
     }
 
     [Test]

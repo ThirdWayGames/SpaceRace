@@ -142,6 +142,29 @@ public static class SpaceRaceCopy
         return seconds.ToString("00.00", CultureInfo.InvariantCulture);
     }
 
+    public static void CenterRespawnReadout(float labelWidth, float digitWidth, float gap, out float labelRight, out float digitsLeft)
+    {
+        labelRight = (labelWidth - gap - digitWidth) * 0.5f;
+        digitsLeft = labelRight + gap;
+    }
+
+    public static int FitRespawnFontSize(int fontSize, float neededWidth, float availableWidth, float margin)
+    {
+        if (fontSize < 1)
+        {
+            fontSize = 1;
+        }
+
+        var room = availableWidth - margin;
+        if (neededWidth <= room || neededWidth <= 1f || room <= 1f)
+        {
+            return fontSize;
+        }
+
+        var scaled = (int)(fontSize * (room / neededWidth));
+        return scaled < 24 ? 24 : scaled;
+    }
+
     public static string Rewrite(string value)
     {
         if (string.IsNullOrEmpty(value))

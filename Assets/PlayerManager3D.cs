@@ -431,17 +431,21 @@ public class PlayerManager3D : Photon.MonoBehaviour
 
         var label = RespawnTimerText;
         var labelRect = label.rectTransform;
-        labelRect.anchorMin = new Vector2(0f, 0f);
-        labelRect.anchorMax = new Vector2(0.5f, 1f);
-        labelRect.pivot = new Vector2(1f, 0.5f);
-        labelRect.offsetMin = Vector2.zero;
-        labelRect.offsetMax = new Vector2(-8f, 0f);
-        label.alignment = TextAnchor.MiddleRight;
-        label.horizontalOverflow = HorizontalWrapMode.Overflow;
-        label.verticalOverflow = VerticalWrapMode.Overflow;
-        label.text = SpaceRaceCopy.RespawnLabel;
+        var available = labelRect.rect.width;
+        var parent = labelRect.parent as RectTransform;
+        if (parent != null && parent.rect.width > available)
+        {
+            available = parent.rect.width;
+        }
+
+        if (available < 1f)
+        {
+            available = Screen.width;
+        }
 
         var fontSize = label.fontSize > 0 ? label.fontSize : 110;
+        var gap = 16f;
+        var labelWidth = TextAdvance(label.font, fontSize, label.fontStyle, SpaceRaceCopy.RespawnLabel);
         var digitWidth = CharacterAdvance(label.font, fontSize, label.fontStyle, '0');
         var dotWidth = CharacterAdvance(label.font, fontSize, label.fontStyle, '.');
         if (dotWidth < digitWidth * 0.2f)
@@ -456,13 +460,42 @@ public class PlayerManager3D : Photon.MonoBehaviour
             total += widths[i];
         }
 
+        var fitted = SpaceRaceCopy.FitRespawnFontSize(fontSize, labelWidth + gap + total, available, 48f);
+        if (fitted != fontSize && fontSize > 0)
+        {
+            var scale = fitted / (float)fontSize;
+            fontSize = fitted;
+            labelWidth *= scale;
+            total = 0f;
+            for (var i = 0; i < widths.Length; i++)
+            {
+                widths[i] *= scale;
+                total += widths[i];
+            }
+        }
+
+        float labelRight;
+        float digitsLeft;
+        SpaceRaceCopy.CenterRespawnReadout(labelWidth, total, gap, out labelRight, out digitsLeft);
+
+        labelRect.anchorMin = new Vector2(0.5f, 0.5f);
+        labelRect.anchorMax = new Vector2(0.5f, 0.5f);
+        labelRect.pivot = new Vector2(1f, 0.5f);
+        labelRect.anchoredPosition = new Vector2(labelRight, 0f);
+        labelRect.sizeDelta = new Vector2(labelWidth, fontSize * 1.4f);
+        label.fontSize = fontSize;
+        label.alignment = TextAnchor.MiddleRight;
+        label.horizontalOverflow = HorizontalWrapMode.Overflow;
+        label.verticalOverflow = VerticalWrapMode.Overflow;
+        label.text = SpaceRaceCopy.RespawnLabel;
+
         var row = new GameObject("RespawnTimerValue");
         row.transform.SetParent(label.transform.parent, false);
         var rowRect = row.AddComponent<RectTransform>();
         rowRect.anchorMin = new Vector2(0.5f, 0.5f);
         rowRect.anchorMax = new Vector2(0.5f, 0.5f);
         rowRect.pivot = new Vector2(0f, 0.5f);
-        rowRect.anchoredPosition = new Vector2(8f, 0f);
+        rowRect.anchoredPosition = new Vector2(digitsLeft, 0f);
         rowRect.sizeDelta = new Vector2(total, fontSize * 1.4f);
 
         respawnDigits = new Text[widths.Length];
@@ -491,6 +524,36 @@ public class PlayerManager3D : Photon.MonoBehaviour
             respawnDigits[i] = digit;
             x += widths[i];
         }
+    }
+
+    static float TextAdvance(Font font, int size, FontStyle style, string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return 0f;
+        }
+
+        if (font == null)
+        {
+            return size * 0.62f * value.Length;
+        }
+
+        font.RequestCharactersInTexture(value, size, style);
+        var total = 0f;
+        for (var i = 0; i < value.Length; i++)
+        {
+            CharacterInfo info;
+            if (font.GetCharacterInfo(value[i], out info, size, style) && info.advance > 1f)
+            {
+                total += info.advance;
+            }
+            else
+            {
+                total += size * 0.62f;
+            }
+        }
+
+        return total;
     }
 
     static float CharacterAdvance(Font font, int size, FontStyle style, char character)
