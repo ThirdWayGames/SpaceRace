@@ -24,6 +24,9 @@ public class CameraFollow3D : MonoBehaviour
     private Camera cam;
     private float CurrentX = 0f;
     private float CurrentY = 0f;
+    private bool scoped;
+    private float savedZoom;
+    private float scopeZoom = 6f;
 
     public void Start()
     {
@@ -46,8 +49,13 @@ public class CameraFollow3D : MonoBehaviour
             CurrentY = Mathf.Clamp(CurrentY, Y_ANGLE_MIN, Y_ANGLE_MAX);
         }
 
+        if (scoped)
+        {
+            CameraXYOffset.z = Mathf.Lerp(CameraXYOffset.z, scopeZoom, 8f * Time.deltaTime);
+        }
+
         // Apply Mouse zoom.
-        if (Input.GetAxis("Mouse ScrollWheel") != 0f)
+        if (!scoped && Input.GetAxis("Mouse ScrollWheel") != 0f)
         {
             // Adjust the orthographic size of the camera.
             var tempDist = CameraXYOffset.z - Input.GetAxis("Mouse ScrollWheel") * SensivityScroll;
@@ -105,6 +113,29 @@ public class CameraFollow3D : MonoBehaviour
     /// Sets the cameras target.
     /// </summary>
     /// <param name="transform">The transform to focus the camera on.</param>
+    public void SetScoped(bool on, float zoom)
+    {
+        if (on)
+        {
+            if (!scoped)
+            {
+                savedZoom = CameraXYOffset.z;
+                scoped = true;
+            }
+
+            scopeZoom = zoom;
+            return;
+        }
+
+        if (!scoped)
+        {
+            return;
+        }
+
+        scoped = false;
+        CameraXYOffset.z = savedZoom;
+    }
+
     public void SetTarget(Transform transform)
     {
         // Set the target by default.

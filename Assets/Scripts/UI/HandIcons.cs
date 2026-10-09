@@ -96,6 +96,11 @@ public static class HandIcons
             return "EngineeringTool";
         }
 
+        if (name.IndexOf("Grenade") >= 0)
+        {
+            return "Grenade";
+        }
+
         if (name.IndexOf("Flare") >= 0 || name.IndexOf("Throwable") >= 0)
         {
             return "Flare";

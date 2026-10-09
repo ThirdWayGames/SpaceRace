@@ -23,6 +23,16 @@ public class ThrowItemAction : Weapon
         get { return BulletVelocity * FlareThrow.SpeedMultiplier(chargeSeconds); }
     }
 
+    public override float ThrowChargeSeconds
+    {
+        get { return chargeSeconds; }
+    }
+
+    public override float ThrowSpeed
+    {
+        get { return ChargedBulletVelocity; }
+    }
+
     public override void BeginThrowCharge()
     {
         charging = true;
@@ -43,6 +53,12 @@ public class ThrowItemAction : Weapon
     {
         charging = false;
         chargeSeconds = 0f;
+    }
+
+    public void OnDisable()
+    {
+        ClearThrowCharge();
+        ThrowPreview.Hide(transform);
     }
 
     public override void Equip(IPlayerController player)

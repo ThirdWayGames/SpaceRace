@@ -7,6 +7,9 @@ public class SpaceRaceCopyFixture
     public void HandIconsMatchTheEquippedWeapon()
     {
         Assert.AreEqual("HeavyBlaster", HandIcons.CatalogKey("HeavyBlaster(Clone)"));
+        Assert.AreEqual("Grenade", HandIcons.CatalogKey("Grenade"));
+        Assert.AreEqual("Flare", HandIcons.CatalogKey("Throwable"));
+        Assert.AreEqual("sniper-rifle", HandIcons.CatalogKey("SniperRifle"));
         Assert.AreEqual("PathogenBlaster", HandIcons.CatalogKey("PathogenBlasterLeft"));
         Assert.AreEqual("EnergyRecharger", HandIcons.CatalogKey("EnergyBlaster"));
         Assert.AreEqual("MediRay", HandIcons.CatalogKey("HealBlaster"));
@@ -42,6 +45,28 @@ public class SpaceRaceCopyFixture
         Assert.Less(System.Math.Abs(leftEdge), 800f);
         Assert.AreEqual(110, SpaceRaceCopy.FitRespawnFontSize(110, 1300f, 1920f, 48f));
         Assert.Less(SpaceRaceCopy.FitRespawnFontSize(110, 1400f, 1280f, 48f), 110);
+    }
+
+    [Test]
+    public void SniperClaimsBothHandsAndGrenadesFitEitherHand()
+    {
+        string left = "HeavyBlaster";
+        string right = "Throwable";
+        LoadoutHands.Assign(ref left, ref right, true, "SniperRifle");
+        Assert.AreEqual("SniperRifle", left);
+        Assert.IsNull(right);
+
+        LoadoutHands.Assign(ref left, ref right, false, "Grenade");
+        Assert.IsNull(left);
+        Assert.AreEqual("Grenade", right);
+
+        left = "SniperRifle";
+        right = null;
+        LoadoutHands.Assign(ref left, ref right, false, "Throwable");
+        Assert.IsNull(left);
+        Assert.AreEqual("Throwable", right);
+        Assert.IsTrue(GrenadeBlast.Inside(Vector3.zero, new Vector3(1f, 0f, 0f), 3.4f));
+        Assert.IsFalse(GrenadeBlast.Inside(Vector3.zero, new Vector3(4f, 0f, 0f), 3.4f));
     }
 
     [Test]

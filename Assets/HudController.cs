@@ -277,8 +277,23 @@ namespace Assets
                 var equipment = ObservedPlayer.GetComponent<EquipmentComponent>();
                 if (equipment != null)
                 {
-                    ApplyHandIcon(LeftEquipmentFireMode, equipment.LeftHand);
-                    ApplyHandIcon(RightEquipmentFireMode, equipment.RightHand);
+                    var leftWeapon = equipment.LeftHand != null ? equipment.LeftHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>() : null;
+                    var rightWeapon = equipment.RightHand != null ? equipment.RightHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>() : null;
+                    if (leftWeapon != null && leftWeapon.OccupiesBothHands)
+                    {
+                        ApplyHandIcon(LeftEquipmentFireMode, equipment.LeftHand);
+                        ApplyHandIcon(RightEquipmentFireMode, equipment.LeftHand);
+                    }
+                    else if (rightWeapon != null && rightWeapon.OccupiesBothHands)
+                    {
+                        ApplyHandIcon(LeftEquipmentFireMode, equipment.RightHand);
+                        ApplyHandIcon(RightEquipmentFireMode, equipment.RightHand);
+                    }
+                    else
+                    {
+                        ApplyHandIcon(LeftEquipmentFireMode, equipment.LeftHand);
+                        ApplyHandIcon(RightEquipmentFireMode, equipment.RightHand);
+                    }
                 }
             }
 

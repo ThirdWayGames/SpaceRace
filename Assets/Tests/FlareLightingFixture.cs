@@ -61,6 +61,14 @@ public class FlareLightingFixture
         Assert.AreEqual(1.5f, FlareThrow.SpeedMultiplier(0.5f), 0.0001f);
         Assert.AreEqual(2f, FlareThrow.SpeedMultiplier(FlareThrow.FullChargeSeconds), 0.0001f);
         Assert.AreEqual(2f, FlareThrow.SpeedMultiplier(4f), 0.0001f);
+        Assert.AreEqual(0f, FlareThrow.ChargeFraction(0f), 0.0001f);
+        Assert.AreEqual(1f, FlareThrow.ChargeFraction(FlareThrow.FullChargeSeconds), 0.0001f);
+
+        var tap = FlareThrow.LandingPoint(new Vector3(0f, 1.2f, 0f), Vector3.forward, 9f, 0f, 9.81f);
+        var full = FlareThrow.LandingPoint(new Vector3(0f, 1.2f, 0f), Vector3.forward, 18f, 0f, 9.81f);
+        Assert.AreEqual(0f, tap.x, 0.001f);
+        Assert.Greater(full.z, tap.z * 1.9f);
+        Assert.Less(tap.y, 0.2f);
 
         var throwObject = new GameObject("throwable");
         throwObject.SetActive(false);

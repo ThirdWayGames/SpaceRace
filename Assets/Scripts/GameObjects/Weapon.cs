@@ -163,6 +163,21 @@ namespace Assets.Scripts.GameObjects
             get { return false; }
         }
 
+        public virtual bool OccupiesBothHands
+        {
+            get { return false; }
+        }
+
+        public virtual float ThrowChargeSeconds
+        {
+            get { return 0f; }
+        }
+
+        public virtual float ThrowSpeed
+        {
+            get { return BulletVelocity; }
+        }
+
         public virtual bool IsThrowCharging
         {
             get { return false; }

@@ -102,6 +102,20 @@ namespace Assets.Scripts.Components
 
         public void Update()
         {
+            var leftWeapon = LeftHand != null ? LeftHand.GetComponentInChildren<GameObjects.Weapon>() : null;
+            var rightWeapon = RightHand != null ? RightHand.GetComponentInChildren<GameObjects.Weapon>() : null;
+            if (leftWeapon != null && leftWeapon.OccupiesBothHands)
+            {
+                ProcessTwoHanded(leftWeapon);
+                return;
+            }
+
+            if (rightWeapon != null && rightWeapon.OccupiesBothHands)
+            {
+                ProcessTwoHanded(rightWeapon);
+                return;
+            }
+
             if (LeftHand != null)
             {
                 ProcessEquipment(LeftHandDisabled, LeftHand, LeftHandToggleCode, LeftHandActionButton);
@@ -132,8 +146,11 @@ namespace Assets.Scripts.Components
             var teamComp = this.gameObject.GetComponentInParent<TeamComponent>();
             var teamId = teamComp == null ? 0 : teamComp.TeamIdentifier;
 
+            var leftClaimsBoth = ClaimsBothHands(equipment.LeftHandEquipment);
+            var rightClaimsBoth = !leftClaimsBoth && ClaimsBothHands(equipment.RightHandEquipment);
+
             // Spawn gun
-            if (equipment.RightHandEquipment != null)
+            if (equipment.RightHandEquipment != null && !leftClaimsBoth)
             {
                 if (RightHand != null)
                 {
@@ -169,7 +186,7 @@ namespace Assets.Scripts.Components
                 }
             }
 
-            if (equipment.LeftHandEquipment != null)
+            if (equipment.LeftHandEquipment != null && !rightClaimsBoth)
             {
                 if (LeftHand != null)
                 {
@@ -401,6 +418,7 @@ namespace Assets.Scripts.Components
 
             if (!equipment.IsThrowCharging)
             {
+                ThrowPreview.Hide(equipment.transform);
                 return;
             }
 
@@ -408,6 +426,8 @@ namespace Assets.Scripts.Components
             {
                 equipment.AccumulateThrowCharge(Time.deltaTime);
             }
+
+            PresentThrow(equipment);
 
             if (released || movementBlocked || !held)
             {
@@ -417,7 +437,53 @@ namespace Assets.Scripts.Components
                 }
 
                 equipment.ClearThrowCharge();
+                ThrowPreview.Hide(equipment.transform);
             }
+        }
+
+        static bool ClaimsBothHands(GameObject prefab)
+        {
+            if (prefab == null)
+            {
+                return false;
+            }
+
+            var weapon = prefab.GetComponent<GameObjects.Weapon>();
+            return weapon != null && weapon.OccupiesBothHands;
+        }
+
+        void ProcessTwoHanded(GameObjects.Weapon equipment)
+        {
+            var player = GetComponentInParent<PlayerController3D>();
+            var movement = GetComponent<MovementComponent>();
+            var movementBlocked = movement != null && (movement.IsRunningForward || movement.IsDucking);
+            var isRunning = movement != null && movement.IsRunningForward;
+            var scope = Input.GetButton("Fire2") && !movementBlocked;
+            equipment.AltFire(player, scope, isRunning, Time.deltaTime);
+
+            if (Input.GetButtonDown("Fire1") && !movementBlocked && equipment.GetFireMode() != FireMode.Beam)
+            {
+                equipment.Fire(player, isRunning, Time.deltaTime);
+            }
+        }
+
+        static void PresentThrow(GameObjects.Weapon equipment)
+        {
+            var muzzle = equipment.transform.Find("Muzzle");
+            var origin = muzzle != null ? muzzle.position : equipment.transform.position;
+            var fallback = muzzle != null ? muzzle.forward : equipment.transform.forward;
+            var direction = ShotAim.Direction(origin, ShotAim.CursorPoint(origin, fallback), fallback);
+            var ground = origin.y - 1.1f;
+            RaycastHit hit;
+            if (Physics.Raycast(origin + Vector3.up * 0.2f, Vector3.down, out hit, 8f))
+            {
+                ground = hit.point.y;
+            }
+
+            var landing = FlareThrow.LandingPoint(origin, direction, equipment.ThrowSpeed, ground, Mathf.Abs(Physics.gravity.y));
+            var body = equipment.GetComponentInParent<Rigidbody>();
+            var anchor = body != null ? body.transform : equipment.transform;
+            ThrowPreview.Show(equipment.transform, anchor.position, ground, landing, FlareThrow.ChargeFraction(equipment.ThrowChargeSeconds));
         }
 
         protected SpawnData GenereateSpawnData(GameObject subParentObject)

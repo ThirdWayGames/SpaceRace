@@ -111,4 +111,48 @@ public static class FlareThrow
 
         return 1f + (MaxDistanceMultiplier - 1f) * charge;
     }
+
+    public static float ChargeFraction(float heldSeconds)
+    {
+        if (heldSeconds <= 0f || FullChargeSeconds <= 0f)
+        {
+            return heldSeconds <= 0f ? 0f : 1f;
+        }
+
+        var charge = heldSeconds / FullChargeSeconds;
+        return charge > 1f ? 1f : charge;
+    }
+
+    /// <summary>
+    /// Flat throw. The projectile leaves level with the ground and lands where gravity has dropped it.
+    /// Distance grows with launch speed, which grows with the charge.
+    /// </summary>
+    public static Vector3 LandingPoint(Vector3 origin, Vector3 direction, float speed, float groundY, float gravity)
+    {
+        var flat = direction;
+        flat.y = 0f;
+        if (flat.sqrMagnitude < 0.0001f)
+        {
+            flat = new Vector3(0f, 0f, 1f);
+        }
+        else
+        {
+            flat.Normalize();
+        }
+
+        if (speed < 0f)
+        {
+            speed = 0f;
+        }
+
+        var drop = origin.y - groundY;
+        if (drop < 0.2f)
+        {
+            drop = 0.2f;
+        }
+
+        var g = gravity < 0.1f ? 9.81f : gravity;
+        var time = Mathf.Sqrt((2f * drop) / g);
+        return new Vector3(origin.x, groundY + 0.05f, origin.z) + flat * (speed * time);
+    }
 }
