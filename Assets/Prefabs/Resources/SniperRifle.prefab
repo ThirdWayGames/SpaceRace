@@ -235,12 +235,12 @@ MonoBehaviour:
   EquipmentIconUI: {fileID: 21300000, guid: 2b3fdfcfb4b0a3f4aa1a20a8665f8e79, type: 3}
   EquipmentIconMap: {fileID: 0}
   PickupPrefabType: 
-  FireDelay: 1.2
+  FireDelay: 2.5
   MinAttackDistance: 1
   MinBulletDeviation: 4
   MaxBulletDeviation: 8
-  BulletVelocity: 90
-  BulletLifetime: 1.8
+  BulletVelocity: 180
+  BulletLifetime: 1.1
   EneryConsuption: 36
   AimAtMouseCentre: 0
   ClipSize: 10000

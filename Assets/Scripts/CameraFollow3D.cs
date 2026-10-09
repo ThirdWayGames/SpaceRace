@@ -272,6 +272,28 @@ public class CameraFollow3D : MonoBehaviour
         return right.normalized * (push.x * distance) + forward.normalized * (push.y * distance);
     }
 
+    public bool IsScoped
+    {
+        get { return scoped; }
+    }
+
+    public static bool AllowSprint(bool viewIsScoped, bool shiftHeld)
+    {
+        return shiftHeld && !viewIsScoped;
+    }
+
+    public static bool LocalViewScoped()
+    {
+        var camera = Camera.main;
+        if (camera == null)
+        {
+            return false;
+        }
+
+        var follow = camera.GetComponent<CameraFollow3D>();
+        return follow != null && follow.IsScoped;
+    }
+
     public void SetScoped(bool on, float pullback)
     {
         if (on)

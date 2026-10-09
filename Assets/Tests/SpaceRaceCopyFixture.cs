@@ -111,6 +111,9 @@ public class SpaceRaceCopyFixture
         Assert.AreEqual(0.1f, ScopeSwayMath.Multiplier(0.9f, true, false, 0f, 1.1f, 1f), 0.001f);
         Assert.AreEqual(1.1f, ScopeSwayMath.Multiplier(0.9f, false, true, 0f, 1.1f, 1f), 0.001f);
         Assert.AreEqual(1f, ScopeSwayMath.Multiplier(0.9f, false, true, 1f, 1.1f, 0f), 0.001f);
+        Assert.IsFalse(CameraFollow3D.AllowSprint(true, true));
+        Assert.IsTrue(CameraFollow3D.AllowSprint(false, true));
+        Assert.IsFalse(CameraFollow3D.AllowSprint(true, false));
         Assert.IsTrue(ScopeSwayMath.HoldingBreath(true, true, false));
         Assert.IsFalse(ScopeSwayMath.HoldingBreath(true, true, true));
         Assert.IsFalse(ScopeSwayMath.HoldingBreath(false, true, false));

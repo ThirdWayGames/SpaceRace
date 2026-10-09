@@ -86,6 +86,7 @@ public class SniperRifle : Weapon
             var movement = player.GetComponent<Assets.Scripts.Components.MovementComponent>();
             if (movement != null)
             {
+                movement.IsRunning = false;
                 still = ScopeSwayMath.StandingStill(movement.Horizontal, movement.Vertical);
             }
         }

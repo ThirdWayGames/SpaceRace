@@ -7,7 +7,7 @@ public class ScopeSwaySettings : ScriptableObject
 {
     [Header("Scope sway")]
     [Tooltip("How far the aim drifts, in pixels, at full sway.")]
-    public float SwayAmount = 28f;
+    public float SwayAmount = 18.67f;
 
     [Tooltip("How fast the drift cycles.")]
     public float SwaySpeed = 1.6f;

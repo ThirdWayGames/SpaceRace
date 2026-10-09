@@ -458,6 +458,11 @@ namespace Assets.Scripts.Components
         {
             var player = GetComponentInParent<PlayerController3D>();
             var movement = GetComponent<MovementComponent>();
+            if (movement != null && CameraFollow3D.LocalViewScoped())
+            {
+                movement.IsRunning = false;
+            }
+
             var movementBlocked = movement != null && (movement.IsRunningForward || movement.IsDucking);
             var isRunning = movement != null && movement.IsRunningForward;
             var scope = Input.GetButton("Fire2") && !movementBlocked;

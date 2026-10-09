@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4e6a8b031425d6e7f8091a2b3c4d5e7, type: 3}
   m_Name: SniperScopeSway
   m_EditorClassIdentifier: 
-  SwayAmount: 28
+  SwayAmount: 18.67
   SwaySpeed: 1.6
   BreathHoldReduction: 0.9
   BreathSettleSeconds: 0.5
