@@ -11,15 +11,17 @@ public class SniperRifle : Weapon
 
     public Sprite ScopeCrosshair;
 
+    public ScopeSwaySettings Profile;
+
     public static readonly float[] ScopeMagnifications = { 2f, 4f, 8f };
 
     public const int DefaultScopeMagnificationIndex = 1;
 
-    public static readonly Color LaserCore = new Color(1f, 0.14f, 0.1f, 0.5f);
+    public static readonly Color LaserCore = new Color(1f, 0.14f, 0.1f, 0.55f);
 
-    public static readonly Color LaserGlow = new Color(1f, 0.04f, 0.03f, 0.2f);
+    public static readonly Color LaserGlow = new Color(1f, 0.05f, 0.03f, 0.22f);
 
-    public static readonly Color LaserLight = new Color(1f, 0.1f, 0.06f, 1f);
+    const string LaserShaderName = "SpaceRace/LaserBeam";
 
     bool scoping;
 
@@ -29,7 +31,9 @@ public class SniperRifle : Weapon
 
     Transform dot;
 
-    Transform beamLight;
+    ScopeSwayState sway;
+
+    Vector2 aimPixels;
 
     public override bool OccupiesBothHands
     {
@@ -38,6 +42,11 @@ public class SniperRifle : Weapon
 
     public override GameObject AltFire(IPlayerController player, bool isAltFire, bool isRunning, float frameTiming)
     {
+        if (isAltFire && !scoping)
+        {
+            sway = new ScopeSwayState();
+        }
+
         scoping = isAltFire;
         var camera = Camera.main;
         var follow = camera != null ? camera.GetComponent<CameraFollow3D>() : null;
@@ -46,17 +55,52 @@ public class SniperRifle : Weapon
             follow.SetScoped(isAltFire, ScopeRangePullback);
         }
 
-        SniperScopeView.Set(isAltFire, ScopeCrosshair, ScopeMagnification);
         if (isAltFire)
         {
+            UpdateAim(player);
             PresentLaser();
         }
         else
         {
+            sway = new ScopeSwayState();
+            aimPixels = Vector2.zero;
+            SniperScopeView.ClearHud();
             HideLaser();
         }
 
+        SniperScopeView.Set(isAltFire, ScopeCrosshair, ScopeMagnification);
         return null;
+    }
+
+    public ScopeSwaySettings ActiveProfile()
+    {
+        return Profile != null ? Profile : ScopeSwaySettings.Fallback;
+    }
+
+    void UpdateAim(IPlayerController player)
+    {
+        var settings = ActiveProfile();
+        var still = false;
+        if (player != null)
+        {
+            var movement = player.GetComponent<Assets.Scripts.Components.MovementComponent>();
+            if (movement != null)
+            {
+                still = ScopeSwayMath.StandingStill(movement.Horizontal, movement.Vertical);
+            }
+        }
+
+        var shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        var holding = ScopeSwayMath.HoldingBreath(still, shift, sway.Recovering);
+        sway = ScopeSwayMath.Step(sway, holding, Time.deltaTime, settings.BreathHoldSeconds, settings.SwayReturnSeconds);
+        holding = ScopeSwayMath.HoldingBreath(still, shift, sway.Recovering);
+        var multiplier = ScopeSwayMath.Multiplier(settings.BreathHoldReduction, holding, sway.Recovering, sway.Recovery, settings.SwayPenalty);
+        aimPixels = ScopeSwayMath.Offset(Time.time, settings.SwayAmount, settings.SwaySpeed) * multiplier;
+        SniperScopeView.AimPixels = aimPixels;
+        SniperScopeView.Breath = sway.Breath;
+        SniperScopeView.ShowBreath = holding || sway.Recovering;
+        SniperScopeView.BreathBroken = sway.Recovering;
+        SniperScopeView.Shade = settings.BlockedShade;
     }
 
     public static int StepScopeMagnification(int index, float scrollDelta)
@@ -127,14 +171,10 @@ public class SniperRifle : Weapon
             return base.ApplyBulletSpread(player, gunPortPos);
         }
 
-        var savedMin = MinBulletDeviation;
-        var savedMax = MaxBulletDeviation;
-        MinBulletDeviation = 0.05f;
-        MaxBulletDeviation = 0.12f;
-        var result = base.ApplyBulletSpread(player, gunPortPos);
-        MinBulletDeviation = savedMin;
-        MaxBulletDeviation = savedMax;
-        return result;
+        var fallback = gunPortPos.forward;
+        var cursor = ShotAim.ScreenPoint((Vector2)Input.mousePosition + aimPixels, gunPortPos.position, fallback);
+        var direction = ShotAim.Direction(gunPortPos.position, cursor, fallback);
+        return Quaternion.LookRotation(direction, Vector3.up).eulerAngles;
     }
 
     public void OnDisable()
@@ -147,6 +187,9 @@ public class SniperRifle : Weapon
             follow.SetScoped(false, ScopeRangePullback);
         }
 
+        sway = new ScopeSwayState();
+        aimPixels = Vector2.zero;
+        SniperScopeView.ClearHud();
         SniperScopeView.Set(false, ScopeCrosshair, ScopeMagnification);
         HideLaser();
     }
@@ -157,19 +200,15 @@ public class SniperRifle : Weapon
         var muzzle = transform.Find("Muzzle");
         var origin = muzzle != null ? muzzle.position : transform.position;
         var fallback = muzzle != null ? muzzle.forward : transform.forward;
-        var aim = ShotAim.CursorPoint(origin, fallback);
+        var aim = ShotAim.ScreenPoint((Vector2)Input.mousePosition + aimPixels, origin, fallback);
+        var clear = LaserEnd(origin, aim, -1f);
         var end = LaserPoint(origin, aim, transform.root);
+        SniperScopeView.ShotIsBlocked = IsShotBlocked(FlatReach(origin, clear), FlatReach(origin, end), 0.2f);
         beam.SetPosition(0, origin);
         beam.SetPosition(1, end);
         glow.SetPosition(0, origin);
         glow.SetPosition(1, end);
         dot.position = end;
-        if (beamLight != null)
-        {
-            beamLight.position = Vector3.Lerp(origin, end, 0.42f);
-            beamLight.gameObject.SetActive(true);
-        }
-
         beam.enabled = true;
         glow.enabled = true;
         dot.gameObject.SetActive(true);
@@ -191,11 +230,6 @@ public class SniperRifle : Weapon
         {
             dot.gameObject.SetActive(false);
         }
-
-        if (beamLight != null)
-        {
-            beamLight.gameObject.SetActive(false);
-        }
     }
 
     void EnsureLaser()
@@ -205,8 +239,8 @@ public class SniperRifle : Weapon
             return;
         }
 
-        beam = MakeLine("SniperLaser", 0.028f, new Color(LaserCore.r, LaserCore.g, LaserCore.b, 0.28f), LaserCore, "Sprites/Default");
-        glow = MakeLine("SniperLaserGlow", 0.13f, LaserGlow, LaserGlow, "Sprites/Default");
+        beam = MakeLine("SniperLaser", 0.03f, new Color(LaserCore.r, LaserCore.g, LaserCore.b, 0.34f), LaserCore);
+        glow = MakeLine("SniperLaserGlow", 0.11f, LaserGlow, LaserGlow);
         beam.transform.SetParent(transform, false);
         glow.transform.SetParent(transform, false);
         var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -220,36 +254,46 @@ public class SniperRifle : Weapon
         }
 
         var renderer = marker.GetComponent<Renderer>();
-        var shader = Shader.Find("Sprites/Default");
-        if (renderer != null && shader != null)
+        var material = LaserMaterial();
+        if (renderer != null && material != null)
         {
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             renderer.receiveShadows = false;
-            renderer.material = new Material(shader);
-            renderer.material.color = new Color(1f, 0.22f, 0.16f, 0.55f);
+            renderer.material = material;
+            renderer.material.color = new Color(1f, 0.2f, 0.12f, 0.7f);
         }
 
-        var light = marker.AddComponent<Light>();
-        light.type = LightType.Point;
-        light.color = LaserLight;
-        light.range = 4.5f;
-        light.intensity = 7f;
-        light.shadows = LightShadows.None;
         dot = marker.transform;
-
-        var wash = new GameObject("SniperLaserLight");
-        wash.transform.SetParent(transform, false);
-        var beamPoint = wash.AddComponent<Light>();
-        beamPoint.type = LightType.Point;
-        beamPoint.color = LaserLight;
-        beamPoint.range = 3.6f;
-        beamPoint.intensity = 3.4f;
-        beamPoint.shadows = LightShadows.None;
-        beamLight = wash.transform;
-        wash.SetActive(false);
     }
 
-    static LineRenderer MakeLine(string name, float width, Color start, Color end, string shaderName)
+    static Material LaserMaterial()
+    {
+        var shader = Shader.Find(LaserShaderName);
+        if (shader == null)
+        {
+            shader = Shader.Find("Sprites/Default");
+        }
+
+        if (shader == null)
+        {
+            return null;
+        }
+
+        var material = new Material(shader);
+        if (material.HasProperty("_Color"))
+        {
+            material.SetColor("_Color", Color.white);
+        }
+
+        if (material.HasProperty("_Emission"))
+        {
+            material.SetFloat("_Emission", 2.6f);
+        }
+
+        return material;
+    }
+
+    static LineRenderer MakeLine(string name, float width, Color start, Color end)
     {
         var item = new GameObject(name);
         var line = item.AddComponent<LineRenderer>();
@@ -261,19 +305,35 @@ public class SniperRifle : Weapon
         line.receiveShadows = false;
         line.startColor = start;
         line.endColor = end;
-        var shader = Shader.Find(shaderName);
-        if (shader == null)
+        var material = LaserMaterial();
+        if (material != null)
         {
-            shader = Shader.Find("Sprites/Default");
-        }
-
-        if (shader != null)
-        {
-            line.material = new Material(shader);
-            line.material.color = Color.white;
+            line.material = material;
         }
 
         return line;
+    }
+
+    public static float FlatReach(Vector3 origin, Vector3 point)
+    {
+        var offset = point - origin;
+        offset.y = 0f;
+        return offset.magnitude;
+    }
+
+    public static bool IsShotBlocked(float reach, float traveled, float slack)
+    {
+        if (reach < 0.05f)
+        {
+            return false;
+        }
+
+        if (slack < 0f)
+        {
+            slack = 0f;
+        }
+
+        return traveled < reach - slack;
     }
 
     public static Vector3 LaserEnd(Vector3 origin, Vector3 aim, float stopDistance)
@@ -338,14 +398,36 @@ public class SniperScopeView : MonoBehaviour
 
     public const float LensRadius = 150f;
 
+    public static Vector2 AimPixels;
+    public static bool ShotIsBlocked;
+    public static float Shade = 0.62f;
+    public static float Breath;
+    public static bool ShowBreath;
+    public static bool BreathBroken;
+
     RawImage lens;
     RectTransform lensRoot;
     Image crosshair;
+    Image blockedShade;
+    Image blockedMarkA;
+    Image blockedMarkB;
+    Image breathTrack;
+    Image breathFill;
     Text magnificationLabel;
     Camera scopeCamera;
     RenderTexture texture;
     float magnification = 4f;
     int magIndex = SniperRifle.DefaultScopeMagnificationIndex;
+    Sprite whiteSprite;
+
+    public static void ClearHud()
+    {
+        AimPixels = Vector2.zero;
+        ShotIsBlocked = false;
+        Breath = 0f;
+        ShowBreath = false;
+        BreathBroken = false;
+    }
 
     public static void Set(bool on, Sprite sprite, float zoom)
     {
@@ -422,6 +504,44 @@ public class SniperScopeView : MonoBehaviour
         active.crosshair.color = new Color(0.45f, 1f, 0.85f, 0.95f);
         active.crosshair.rectTransform.sizeDelta = new Vector2(LensRadius * 2f, LensRadius * 2f);
 
+        var shadeObject = new GameObject("ScopeShade");
+        shadeObject.transform.SetParent(maskObject.transform, false);
+        active.blockedShade = shadeObject.AddComponent<Image>();
+        active.blockedShade.raycastTarget = false;
+        active.blockedShade.color = new Color(0f, 0f, 0f, 0f);
+        var shadeRect = active.blockedShade.rectTransform;
+        shadeRect.anchorMin = Vector2.zero;
+        shadeRect.anchorMax = Vector2.one;
+        shadeRect.offsetMin = Vector2.zero;
+        shadeRect.offsetMax = Vector2.zero;
+        active.blockedShade.enabled = false;
+
+        active.whiteSprite = WhiteSprite();
+        active.blockedMarkA = MakeBar(canvasObject.transform, "ScopeBlockA", active.whiteSprite, 45f);
+        active.blockedMarkB = MakeBar(canvasObject.transform, "ScopeBlockB", active.whiteSprite, -45f);
+
+        var trackObject = new GameObject("BreathTrack");
+        trackObject.transform.SetParent(canvasObject.transform, false);
+        active.breathTrack = trackObject.AddComponent<Image>();
+        active.breathTrack.sprite = active.whiteSprite;
+        active.breathTrack.raycastTarget = false;
+        active.breathTrack.color = new Color(0.05f, 0.07f, 0.08f, 0.85f);
+        active.breathTrack.rectTransform.sizeDelta = new Vector2(120f, 8f);
+        active.breathTrack.enabled = false;
+
+        var fillObject = new GameObject("BreathFill");
+        fillObject.transform.SetParent(trackObject.transform, false);
+        active.breathFill = fillObject.AddComponent<Image>();
+        active.breathFill.sprite = active.whiteSprite;
+        active.breathFill.raycastTarget = false;
+        active.breathFill.color = new Color(0.35f, 0.85f, 0.78f, 0.95f);
+        var fillRect = active.breathFill.rectTransform;
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+        fillRect.pivot = new Vector2(0f, 0.5f);
+
         var labelObject = new GameObject("ScopeMagnification");
         labelObject.transform.SetParent(canvasObject.transform, false);
         active.magnificationLabel = labelObject.AddComponent<Text>();
@@ -493,7 +613,8 @@ public class SniperScopeView : MonoBehaviour
         var follow = main.GetComponent<CameraFollow3D>();
         var anchor = follow != null && follow.myTarget != null ? follow.myTarget : main.transform;
         var plane = anchor.position + Vector3.up * 1.2f;
-        var aim = ShotAim.CursorPoint(plane, anchor.forward);
+        var aimScreen = (Vector2)Input.mousePosition + AimPixels;
+        var aim = ShotAim.ScreenPoint(aimScreen, plane, anchor.forward);
         var offset = follow != null ? follow.BirdseyeOffset() : main.transform.position - anchor.position;
         if (offset.sqrMagnitude < 0.25f)
         {
@@ -521,13 +642,94 @@ public class SniperScopeView : MonoBehaviour
         }
 
         crosshair.rectTransform.position = screen;
+        var shade = ShotIsBlocked ? Shade : 0f;
+        if (shade < 0f)
+        {
+            shade = 0f;
+        }
+
+        if (shade > 0.92f)
+        {
+            shade = 0.92f;
+        }
+
+        if (lens != null)
+        {
+            lens.color = Color.Lerp(Color.white, new Color(0.18f, 0.14f, 0.14f, 1f), shade);
+        }
+
+        if (blockedShade != null)
+        {
+            blockedShade.enabled = shade > 0.01f;
+            blockedShade.color = new Color(0f, 0f, 0f, shade);
+        }
+
+        PlaceMark(blockedMarkA, screen, ShotIsBlocked);
+        PlaceMark(blockedMarkB, screen, ShotIsBlocked);
+        var below = screen.y >= LensRadius + 48f;
+        var barY = below ? screen.y - LensRadius - 14f : screen.y + LensRadius + 14f;
+        if (breathTrack != null)
+        {
+            breathTrack.enabled = ShowBreath;
+            breathTrack.rectTransform.position = new Vector3(screen.x, barY, screen.z);
+        }
+
+        if (breathFill != null)
+        {
+            var fill = Breath < 0f ? 0f : (Breath > 1f ? 1f : Breath);
+            breathFill.rectTransform.anchorMax = new Vector2(fill, 1f);
+            breathFill.color = BreathBroken
+                ? new Color(0.85f, 0.16f, 0.12f, 0.95f)
+                : new Color(0.35f, 0.85f, 0.78f, 0.95f);
+        }
+
         if (magnificationLabel != null)
         {
-            var below = screen.y >= LensRadius + 36f;
-            var labelY = below ? screen.y - LensRadius - 18f : screen.y + LensRadius + 18f;
+            var labelY = below ? barY - (ShowBreath ? 22f : 8f) : barY + (ShowBreath ? 22f : 8f);
+            if (!ShowBreath)
+            {
+                labelY = below ? screen.y - LensRadius - 18f : screen.y + LensRadius + 18f;
+            }
+
             magnificationLabel.rectTransform.position = new Vector3(screen.x, labelY, screen.z);
             magnificationLabel.text = SniperRifle.ScopeMagnificationAt(magIndex).ToString("0") + "x";
         }
+    }
+
+    static void PlaceMark(Image mark, Vector3 screen, bool visible)
+    {
+        if (mark == null)
+        {
+            return;
+        }
+
+        mark.enabled = visible;
+        mark.rectTransform.position = screen;
+    }
+
+    static Image MakeBar(Transform parent, string name, Sprite sprite, float angle)
+    {
+        var item = new GameObject(name);
+        item.transform.SetParent(parent, false);
+        var image = item.AddComponent<Image>();
+        image.sprite = sprite;
+        image.raycastTarget = false;
+        image.color = new Color(1f, 0.16f, 0.12f, 0.95f);
+        image.rectTransform.sizeDelta = new Vector2(150f, 6f);
+        image.rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
+        image.enabled = false;
+        return image;
+    }
+
+    static Sprite WhiteSprite()
+    {
+        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        tex.SetPixel(0, 0, Color.white);
+        tex.SetPixel(1, 0, Color.white);
+        tex.SetPixel(0, 1, Color.white);
+        tex.SetPixel(1, 1, Color.white);
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f), 100f);
     }
 
     static Sprite CircleSprite()

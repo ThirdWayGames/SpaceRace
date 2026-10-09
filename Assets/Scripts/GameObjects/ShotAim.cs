@@ -24,13 +24,18 @@ public static class ShotAim
 
     public static Vector3 CursorPoint(Vector3 muzzle, Vector3 fallbackForward)
     {
+        return ScreenPoint(Input.mousePosition, muzzle, fallbackForward);
+    }
+
+    public static Vector3 ScreenPoint(Vector2 screen, Vector3 muzzle, Vector3 fallbackForward)
+    {
         var camera = Camera.main;
         if (camera == null)
         {
             return muzzle + fallbackForward;
         }
 
-        var ray = camera.ScreenPointToRay(Input.mousePosition);
+        var ray = camera.ScreenPointToRay(screen);
         Vector3 point;
         if (!TryPlanePoint(ray.origin, ray.direction, muzzle.y, out point))
         {
