@@ -92,9 +92,9 @@ public class SniperRifle : Weapon
 
         var shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
         var holding = ScopeSwayMath.HoldingBreath(still, shift, sway.Recovering);
-        sway = ScopeSwayMath.Step(sway, holding, Time.deltaTime, settings.BreathHoldSeconds, settings.SwayReturnSeconds);
+        sway = ScopeSwayMath.Step(sway, holding, Time.deltaTime, settings.BreathHoldSeconds, settings.SwayReturnSeconds, settings.BreathSettleSeconds);
         holding = ScopeSwayMath.HoldingBreath(still, shift, sway.Recovering);
-        var multiplier = ScopeSwayMath.Multiplier(settings.BreathHoldReduction, holding, sway.Recovering, sway.Recovery, settings.SwayPenalty);
+        var multiplier = ScopeSwayMath.Multiplier(settings.BreathHoldReduction, holding, sway.Recovering, sway.Recovery, settings.SwayPenalty, sway.Settle);
         aimPixels = ScopeSwayMath.Offset(Time.time, settings.SwayAmount, settings.SwaySpeed) * multiplier;
         SniperScopeView.AimPixels = aimPixels;
         SniperScopeView.Breath = sway.Breath;
@@ -382,6 +382,11 @@ public class SniperRifle : Weapon
                 continue;
             }
 
+            if (!BlocksScopeLos(IsPlayerBody(hit.collider.transform), IsMonsterBody(hit.collider.transform)))
+            {
+                continue;
+            }
+
             if (best < 0f || hit.distance < best)
             {
                 best = hit.distance;
@@ -389,6 +394,42 @@ public class SniperRifle : Weapon
         }
 
         return best < 0f ? clear : LaserEnd(origin, aim, best);
+    }
+
+    public static bool BlocksScopeLos(bool isPlayer, bool isMonster)
+    {
+        return !isPlayer && !isMonster;
+    }
+
+    static bool IsPlayerBody(Transform hit)
+    {
+        return hit != null && hit.GetComponentInParent<Assets.Scripts.BasePlayerController3D>() != null;
+    }
+
+    static bool IsMonsterBody(Transform hit)
+    {
+        if (hit == null)
+        {
+            return false;
+        }
+
+        if (hit.GetComponentInParent<EnemyStateComponent>() != null || hit.GetComponentInParent<EnemyTargetComponent>() != null)
+        {
+            return true;
+        }
+
+        var current = hit;
+        while (current != null)
+        {
+            if (current.tag == "EnemyTarget")
+            {
+                return true;
+            }
+
+            current = current.parent;
+        }
+
+        return false;
     }
 }
 

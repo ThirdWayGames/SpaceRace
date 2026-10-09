@@ -16,6 +16,9 @@ public class ScopeSwaySettings : ScriptableObject
     [Tooltip("Fraction of sway removed while standing still and holding shift. 0.9 leaves 10 percent.")]
     public float BreathHoldReduction = 0.9f;
 
+    [Tooltip("Seconds to ease into the breath-hold reduction.")]
+    public float BreathSettleSeconds = 0.5f;
+
     [Tooltip("Seconds the breath bar takes to fill.")]
     public float BreathHoldSeconds = 4f;
 
@@ -53,6 +56,8 @@ public struct ScopeSwayState
 
     public float Recovery;
 
+    public float Settle;
+
     public bool Recovering;
 }
 
@@ -68,7 +73,7 @@ public static class ScopeSwayMath
         return standingStill && shiftHeld && !recovering;
     }
 
-    public static ScopeSwayState Step(ScopeSwayState state, bool holdingBreath, float delta, float breathSeconds, float returnSeconds)
+    public static ScopeSwayState Step(ScopeSwayState state, bool holdingBreath, float delta, float breathSeconds, float returnSeconds, float settleSeconds)
     {
         if (delta < 0f)
         {
@@ -84,6 +89,11 @@ public static class ScopeSwayMath
                 state.Recovering = false;
                 state.Recovery = 1f;
                 state.Breath = 0f;
+                state.Settle = 0f;
+            }
+            else
+            {
+                state.Breath = 1f - state.Recovery;
             }
 
             return state;
@@ -92,7 +102,15 @@ public static class ScopeSwayMath
         if (!holdingBreath)
         {
             state.Breath = 0f;
+            state.Settle = 0f;
             return state;
+        }
+
+        var settle = settleSeconds < 0.05f ? 0.05f : settleSeconds;
+        state.Settle += delta / settle;
+        if (state.Settle > 1f)
+        {
+            state.Settle = 1f;
         }
 
         var fill = breathSeconds < 0.05f ? 0.05f : breathSeconds;
@@ -102,12 +120,13 @@ public static class ScopeSwayMath
             state.Breath = 1f;
             state.Recovering = true;
             state.Recovery = 0f;
+            state.Settle = 0f;
         }
 
         return state;
     }
 
-    public static float Multiplier(float breathHoldReduction, bool holding, bool recovering, float recovery01, float penalty)
+    public static float Multiplier(float breathHoldReduction, bool holding, bool recovering, float recovery01, float penalty, float settle01)
     {
         if (recovering)
         {
@@ -129,7 +148,8 @@ public static class ScopeSwayMath
                 reduction = 1f;
             }
 
-            return 1f - reduction;
+            var settle = settle01 < 0f ? 0f : (settle01 > 1f ? 1f : settle01);
+            return 1f - (reduction * settle);
         }
 
         return 1f;
