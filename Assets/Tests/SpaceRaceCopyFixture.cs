@@ -67,6 +67,14 @@ public class SpaceRaceCopyFixture
         Assert.AreEqual("Throwable", right);
         Assert.IsTrue(GrenadeBlast.Inside(Vector3.zero, new Vector3(1f, 0f, 0f), 3.4f));
         Assert.IsFalse(GrenadeBlast.Inside(Vector3.zero, new Vector3(4f, 0f, 0f), 3.4f));
+        Assert.AreEqual(13.5f, CameraFollow3D.ScopedDistance(10f, 3.5f, 3f, 19f), 0.001f);
+        Assert.AreEqual(19f, CameraFollow3D.ScopedDistance(18f, 3.5f, 3f, 19f), 0.001f);
+        Assert.AreEqual(10f, CameraFollow3D.ScopedDistance(10f, -2f, 3f, 19f), 0.001f);
+        var sight = SniperRifle.LaserEnd(new Vector3(0f, 1.2f, 0f), new Vector3(0f, 0.2f, 8f), -1f);
+        Assert.AreEqual(8f, sight.z, 0.001f);
+        Assert.AreEqual(1.26f, sight.y, 0.001f);
+        var blocked = SniperRifle.LaserEnd(new Vector3(0f, 1.2f, 0f), new Vector3(0f, 1.2f, 8f), 3f);
+        Assert.AreEqual(3f, blocked.z, 0.001f);
     }
 
     [Test]

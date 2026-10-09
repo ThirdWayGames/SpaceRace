@@ -258,5 +258,6 @@ MonoBehaviour:
     m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
   IsAIBullet: 0
-  ScopedZoom: 5.5
+  ScopeRangePullback: 3.5
+  ScopeMagnification: 4
   ScopeCrosshair: {fileID: 21300000, guid: 6c143648192ad5e6f708192a3b4c5d6e, type: 3}

@@ -110,10 +110,15 @@ public class CameraFollow3D : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets the cameras target.
+    /// While scoped, the world camera stays put or pulls back. The magnified view lives in the reticle.
     /// </summary>
-    /// <param name="transform">The transform to focus the camera on.</param>
-    public void SetScoped(bool on, float zoom)
+    public static float ScopedDistance(float current, float pullback, float min, float max)
+    {
+        var extra = pullback < 0f ? 0f : pullback;
+        return Mathf.Clamp(current + extra, min, max);
+    }
+
+    public void SetScoped(bool on, float pullback)
     {
         if (on)
         {
@@ -123,7 +128,7 @@ public class CameraFollow3D : MonoBehaviour
                 scoped = true;
             }
 
-            scopeZoom = zoom;
+            scopeZoom = ScopedDistance(savedZoom, pullback, ZOOM_MIN, ZOOM_MAX);
             return;
         }
 
