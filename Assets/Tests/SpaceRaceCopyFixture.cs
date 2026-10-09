@@ -132,4 +132,32 @@ public class SpaceRaceCopyFixture
         Assert.AreEqual(19.6f, widened, 0.001f);
         Assert.AreEqual(10f, ConsoleTipLayout.CanvasWidth(40f, 0.05f, 2f, 10f));
     }
+
+    [Test]
+    public void ShotsConvergeOnTheCursorDistance()
+    {
+        Vector3 point;
+        Assert.IsTrue(ShotAim.TryPlanePoint(new Vector3(0f, 5f, 2f), new Vector3(0f, -1f, 0f), 0f, out point));
+        Assert.AreEqual(0f, point.x, 0.001f);
+        Assert.AreEqual(0f, point.y, 0.001f);
+        Assert.AreEqual(2f, point.z, 0.001f);
+        Assert.IsFalse(ShotAim.TryPlanePoint(new Vector3(0f, 5f, 0f), new Vector3(0f, 1f, 0f), 0f, out point));
+        Assert.IsFalse(ShotAim.TryPlanePoint(new Vector3(0f, 5f, 0f), new Vector3(1f, 0f, 0f), 0f, out point));
+
+        var muzzle = new Vector3(0f, 1.2f, 0f);
+        var cursor = new Vector3(3f, 4f, 4f);
+        var direction = ShotAim.Direction(muzzle, cursor, Vector3.forward);
+        var distance = new Vector3(cursor.x - muzzle.x, 0f, cursor.z - muzzle.z).magnitude;
+        var arrival = muzzle + direction * distance;
+        Assert.AreEqual(cursor.x, arrival.x, 0.001f);
+        Assert.AreEqual(muzzle.y, arrival.y, 0.001f);
+        Assert.AreEqual(cursor.z, arrival.z, 0.001f);
+        Assert.AreEqual(90f, ShotAim.YawOffset(Vector3.forward, Vector3.right), 0.05f);
+
+        var close = ShotAim.Direction(Vector3.zero, new Vector3(0.1f, 2f, 0f), Vector3.forward);
+        Assert.AreEqual(0f, close.x, 0.001f);
+        Assert.AreEqual(1f, close.z, 0.001f);
+        Assert.AreEqual(0.25f, ShotEffects.ColorFor("EnergyBlaster").r, 0.001f);
+        Assert.AreEqual(1f, ShotEffects.ColorFor("HeavyBlaster").r, 0.001f);
+    }
 }
