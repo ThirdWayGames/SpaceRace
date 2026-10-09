@@ -411,7 +411,8 @@ namespace Assets.Scripts.Components
             var released = Input.GetButtonUp(actionButton);
             var held = Input.GetButton(actionButton);
 
-            if (pressed && !movementBlocked)
+            var began = pressed && !movementBlocked;
+            if (began)
             {
                 equipment.BeginThrowCharge();
             }
@@ -429,11 +430,12 @@ namespace Assets.Scripts.Components
 
             PresentThrow(equipment);
 
-            if (released || movementBlocked || !held)
+            var letGo = released || (!held && !began);
+            if (letGo || movementBlocked)
             {
-                if (released && !movementBlocked)
+                if (letGo && !movementBlocked)
                 {
-                    equipment.Fire(GetComponentInParent<PlayerController3D>(), isRunning, Time.deltaTime);
+                    equipment.ReleaseChargedThrow(GetComponentInParent<PlayerController3D>(), isRunning);
                 }
 
                 equipment.ClearThrowCharge();
@@ -483,7 +485,7 @@ namespace Assets.Scripts.Components
             var landing = FlareThrow.LandingPoint(origin, direction, equipment.ThrowSpeed, ground, Mathf.Abs(Physics.gravity.y));
             var body = equipment.GetComponentInParent<Rigidbody>();
             var anchor = body != null ? body.transform : equipment.transform;
-            ThrowPreview.Show(equipment.transform, anchor.position, ground, landing, FlareThrow.ChargeFraction(equipment.ThrowChargeSeconds));
+            ThrowPreview.Show(equipment.transform, anchor.position + Vector3.up * 0.9f, landing, FlareThrow.ChargeFraction(equipment.ThrowChargeSeconds));
         }
 
         protected SpawnData GenereateSpawnData(GameObject subParentObject)

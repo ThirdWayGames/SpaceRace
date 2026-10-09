@@ -196,6 +196,19 @@ namespace Assets.Scripts.GameObjects
         }
 
         /// <summary>
+        /// A charged throw leaves the hand when the fire button is released, including a short tap.
+        /// </summary>
+        public virtual GameObject ReleaseChargedThrow(IPlayerController player, bool isRunning)
+        {
+            if (FireTimer < FireDelay)
+            {
+                FireTimer = FireDelay;
+            }
+
+            return Fire(player, isRunning, Time.deltaTime);
+        }
+
+        /// <summary>
         /// Fires the weapon the player has equiped.
         /// </summary>
         /// <param name="player">The player.</param>

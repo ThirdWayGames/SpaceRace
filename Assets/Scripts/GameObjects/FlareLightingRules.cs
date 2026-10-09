@@ -88,28 +88,22 @@ public static class FlareLighting
 
 public static class FlareThrow
 {
+    public const float MinDistanceMultiplier = 0.28f;
+
     public const float MaxDistanceMultiplier = 2f;
 
     public const float FullChargeSeconds = 1f;
 
     /// <summary>
     /// A flat throw spends a fixed time in the air, so travel distance scales with launch speed.
-    /// No charge keeps today's distance. A full hold doubles it.
+    /// The marker starts just in front of the player and reaches twice the old throw at a full hold.
     /// </summary>
     public static float SpeedMultiplier(float heldSeconds)
     {
-        if (heldSeconds <= 0f || MaxDistanceMultiplier <= 1f)
-        {
-            return 1f;
-        }
-
-        var charge = FullChargeSeconds <= 0f ? 1f : heldSeconds / FullChargeSeconds;
-        if (charge > 1f)
-        {
-            charge = 1f;
-        }
-
-        return 1f + (MaxDistanceMultiplier - 1f) * charge;
+        var charge = ChargeFraction(heldSeconds);
+        var min = MinDistanceMultiplier < 0f ? 0f : MinDistanceMultiplier;
+        var max = MaxDistanceMultiplier < min ? min : MaxDistanceMultiplier;
+        return min + (max - min) * charge;
     }
 
     public static float ChargeFraction(float heldSeconds)

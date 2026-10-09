@@ -1,16 +1,24 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ThrowPreview : MonoBehaviour
 {
+    public const float BarBelowPixels = 72f;
+
     static ThrowPreview active;
     static int ownerId;
 
-    Transform barRoot;
-    Transform barFill;
+    RectTransform barRoot;
+    RectTransform barFill;
     LineRenderer ring;
-    const float BarWidth = 1.35f;
 
-    public static void Show(Transform owner, Vector3 bodyPosition, float groundY, Vector3 landing, float charge)
+    public static Vector2 BarScreenPosition(Vector3 playerScreen, float belowPixels)
+    {
+        var drop = belowPixels < 0f ? 0f : belowPixels;
+        return new Vector2(playerScreen.x, playerScreen.y - drop);
+    }
+
+    public static void Show(Transform owner, Vector3 bodyPosition, Vector3 landing, float charge)
     {
         if (owner == null)
         {
@@ -20,7 +28,7 @@ public class ThrowPreview : MonoBehaviour
         Ensure();
         ownerId = owner.GetInstanceID();
         active.gameObject.SetActive(true);
-        active.Place(bodyPosition, groundY, landing, Mathf.Clamp01(charge));
+        active.Place(bodyPosition, landing, Mathf.Clamp01(charge));
     }
 
     public static void Hide(Transform owner)
@@ -52,10 +60,33 @@ public class ThrowPreview : MonoBehaviour
 
     void Build()
     {
-        barRoot = Quad("ThrowChargeBar", new Color(0.08f, 0.09f, 0.1f, 0.9f));
-        barRoot.SetParent(transform, false);
-        barFill = Quad("ThrowChargeFill", new Color(1f, 0.55f, 0.16f, 1f));
-        barFill.SetParent(barRoot, false);
+        var canvasObject = new GameObject("ThrowChargeCanvas");
+        canvasObject.transform.SetParent(transform, false);
+        var canvas = canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 30;
+        canvasObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+
+        var back = new GameObject("ThrowChargeBar");
+        back.transform.SetParent(canvasObject.transform, false);
+        var backImage = back.AddComponent<Image>();
+        backImage.color = new Color(0.08f, 0.09f, 0.1f, 0.9f);
+        backImage.raycastTarget = false;
+        barRoot = backImage.rectTransform;
+        barRoot.sizeDelta = new Vector2(150f, 14f);
+        barRoot.pivot = new Vector2(0.5f, 0.5f);
+
+        var fill = new GameObject("ThrowChargeFill");
+        fill.transform.SetParent(back.transform, false);
+        var fillImage = fill.AddComponent<Image>();
+        fillImage.color = new Color(1f, 0.55f, 0.16f, 1f);
+        fillImage.raycastTarget = false;
+        barFill = fillImage.rectTransform;
+        barFill.pivot = new Vector2(0f, 0.5f);
+        barFill.anchorMin = new Vector2(0f, 0.15f);
+        barFill.anchorMax = new Vector2(0f, 0.85f);
+        barFill.anchoredPosition = new Vector2(4f, 0f);
+        barFill.sizeDelta = new Vector2(0f, 0f);
 
         var ringObject = new GameObject("ThrowReticle");
         ringObject.transform.SetParent(transform, false);
@@ -77,47 +108,25 @@ public class ThrowPreview : MonoBehaviour
         for (var i = 0; i < ring.positionCount; i++)
         {
             var angle = (Mathf.PI * 2f * i) / ring.positionCount;
-            ring.SetPosition(i, new Vector3(Mathf.Cos(angle) * 0.38f, 0.02f, Mathf.Sin(angle) * 0.38f));
+            ring.SetPosition(i, new Vector3(Mathf.Cos(angle) * 0.38f, 0.05f, Mathf.Sin(angle) * 0.38f));
         }
     }
 
-    void Place(Vector3 bodyPosition, float groundY, Vector3 landing, float charge)
+    void Place(Vector3 bodyPosition, Vector3 landing, float charge)
     {
         var camera = Camera.main;
-        var barPosition = new Vector3(bodyPosition.x, groundY + 0.08f, bodyPosition.z);
-        barRoot.position = barPosition;
         if (camera != null)
         {
-            barRoot.rotation = Quaternion.LookRotation(barRoot.position - camera.transform.position, Vector3.up);
+            var screen = camera.WorldToScreenPoint(bodyPosition);
+            var bar = BarScreenPosition(screen, BarBelowPixels);
+            barRoot.gameObject.SetActive(screen.z > 0f);
+            barRoot.position = new Vector3(bar.x, bar.y, 0f);
         }
 
-        barRoot.localScale = new Vector3(BarWidth, 0.11f, 1f);
-        var fill = Mathf.Max(0.02f, charge);
-        barFill.localPosition = new Vector3((fill - 1f) * 0.5f, 0f, -0.01f);
-        barFill.localScale = new Vector3(fill, 0.72f, 1f);
+        var width = Mathf.Max(4f, (barRoot.sizeDelta.x - 8f) * Mathf.Max(0.04f, charge));
+        barFill.sizeDelta = new Vector2(width, 0f);
 
         ring.transform.position = landing;
         ring.transform.rotation = Quaternion.identity;
-    }
-
-    static Transform Quad(string name, Color color)
-    {
-        var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        quad.name = name;
-        var collider = quad.GetComponent<Collider>();
-        if (collider != null)
-        {
-            Destroy(collider);
-        }
-
-        var renderer = quad.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
-            renderer.material.color = color;
-        }
-
-        return quad.transform;
     }
 }

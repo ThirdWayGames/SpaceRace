@@ -75,6 +75,18 @@ public class ThrowItemAction : Weapon
     {
     }
 
+    protected override Vector3 ApplyBulletSpread(IPlayerController player, Transform gunPortPos)
+    {
+        var savedMin = MinBulletDeviation;
+        var savedMax = MaxBulletDeviation;
+        MinBulletDeviation = 0f;
+        MaxBulletDeviation = 0f;
+        var result = base.ApplyBulletSpread(player, gunPortPos);
+        MinBulletDeviation = savedMin;
+        MaxBulletDeviation = savedMax;
+        return result;
+    }
+
     protected override ISpawnData GenerateSpawnData(IPlayerController player)
     {
         var data = base.GenerateSpawnData(player) as BulletData;
