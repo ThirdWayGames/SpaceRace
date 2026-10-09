@@ -120,6 +120,11 @@ public class SpaceRaceCopyFixture
         Assert.IsTrue(SniperRifle.BlocksScopeLos(false, false));
         Assert.IsFalse(SniperRifle.BlocksScopeLos(true, false));
         Assert.IsFalse(SniperRifle.BlocksScopeLos(false, true));
+        Assert.IsFalse(SniperRifle.BlocksScopeLos(false, false, true));
+        Assert.AreEqual(306f, SniperScopeView.BorderDiameter(SniperScopeView.LensRadius, SniperScopeView.BorderThickness), 0.001f);
+        var magLabel = SniperScopeView.MagnificationLabelPosition(new Vector2(400f, 300f), SniperScopeView.LensRadius, SniperScopeView.BorderThickness, SniperScopeView.MagnificationGap);
+        Assert.AreEqual(561f, magLabel.x, 0.001f);
+        Assert.AreEqual(300f, magLabel.y, 0.001f);
         var easing = ScopeSwayMath.Step(new ScopeSwayState(), true, 0.25f, 4f, 1.5f, 0.5f);
         Assert.AreEqual(0.5f, easing.Settle, 0.001f);
         Assert.IsFalse(easing.Recovering);

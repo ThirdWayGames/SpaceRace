@@ -383,7 +383,7 @@ public class SniperRifle : Weapon
                 continue;
             }
 
-            if (!BlocksScopeLos(IsPlayerBody(hit.collider.transform), IsMonsterBody(hit.collider.transform)))
+            if (!BlocksScopeLos(IsPlayerBody(hit.collider.transform), IsMonsterBody(hit.collider.transform), IsProjectile(hit.collider.transform)))
             {
                 continue;
             }
@@ -399,7 +399,23 @@ public class SniperRifle : Weapon
 
     public static bool BlocksScopeLos(bool isPlayer, bool isMonster)
     {
-        return !isPlayer && !isMonster;
+        return BlocksScopeLos(isPlayer, isMonster, false);
+    }
+
+    public static bool BlocksScopeLos(bool isPlayer, bool isMonster, bool isProjectile)
+    {
+        return !isPlayer && !isMonster && !isProjectile;
+    }
+
+    static bool IsProjectile(Transform hit)
+    {
+        if (hit == null)
+        {
+            return false;
+        }
+
+        return hit.GetComponentInParent<Bullet3D>() != null
+            || hit.GetComponentInParent<Assets.Scripts.Interfaces.IBullet>() != null;
     }
 
     static bool IsPlayerBody(Transform hit)
@@ -439,6 +455,8 @@ public class SniperScopeView : MonoBehaviour
     static SniperScopeView active;
 
     public const float LensRadius = 150f;
+    public const float BorderThickness = 3f;
+    public const float MagnificationGap = 8f;
 
     public static Vector2 AimPixels;
     public static bool ShotIsBlocked;
@@ -449,6 +467,7 @@ public class SniperScopeView : MonoBehaviour
 
     RawImage lens;
     RectTransform lensRoot;
+    RectTransform border;
     Image crosshair;
     Image blockedShade;
     Image blockedMarkA;
@@ -519,10 +538,19 @@ public class SniperScopeView : MonoBehaviour
         canvasObject.AddComponent<CanvasScaler>();
         active = canvasObject.AddComponent<SniperScopeView>();
 
+        var borderObject = new GameObject("ScopeBorder");
+        borderObject.transform.SetParent(canvasObject.transform, false);
+        var borderImage = borderObject.AddComponent<Image>();
+        borderImage.sprite = CircleSprite();
+        borderImage.color = Color.black;
+        borderImage.raycastTarget = false;
+        active.border = borderImage.rectTransform;
+        active.border.sizeDelta = new Vector2(BorderDiameter(LensRadius, BorderThickness), BorderDiameter(LensRadius, BorderThickness));
+
         var maskObject = new GameObject("ScopeLens");
         maskObject.transform.SetParent(canvasObject.transform, false);
         var maskImage = maskObject.AddComponent<Image>();
-        maskImage.sprite = CircleSprite();
+        maskImage.sprite = borderImage.sprite;
         maskImage.raycastTarget = false;
         active.lensRoot = maskImage.rectTransform;
         active.lensRoot.sizeDelta = new Vector2(LensRadius * 2f, LensRadius * 2f);
@@ -590,9 +618,10 @@ public class SniperScopeView : MonoBehaviour
         active.magnificationLabel.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
         active.magnificationLabel.fontSize = 18;
         active.magnificationLabel.fontStyle = FontStyle.Bold;
-        active.magnificationLabel.alignment = TextAnchor.MiddleCenter;
+        active.magnificationLabel.alignment = TextAnchor.MiddleLeft;
         active.magnificationLabel.color = new Color(1f, 0.35f, 0.28f, 0.95f);
         active.magnificationLabel.raycastTarget = false;
+        active.magnificationLabel.rectTransform.pivot = new Vector2(0f, 0.5f);
         active.magnificationLabel.rectTransform.sizeDelta = new Vector2(72f, 28f);
 
         active.texture = new RenderTexture(512, 512, 16);
@@ -678,6 +707,11 @@ public class SniperScopeView : MonoBehaviour
         }
 
         var screen = Input.mousePosition;
+        if (border != null)
+        {
+            border.position = screen;
+        }
+
         if (lensRoot != null)
         {
             lensRoot.position = screen;
@@ -727,15 +761,30 @@ public class SniperScopeView : MonoBehaviour
 
         if (magnificationLabel != null)
         {
-            var labelY = below ? barY - (ShowBreath ? 22f : 8f) : barY + (ShowBreath ? 22f : 8f);
-            if (!ShowBreath)
-            {
-                labelY = below ? screen.y - LensRadius - 18f : screen.y + LensRadius + 18f;
-            }
-
-            magnificationLabel.rectTransform.position = new Vector3(screen.x, labelY, screen.z);
+            var label = MagnificationLabelPosition(screen, LensRadius, BorderThickness, MagnificationGap);
+            magnificationLabel.rectTransform.position = new Vector3(label.x, label.y, screen.z);
             magnificationLabel.text = SniperRifle.ScopeMagnificationAt(magIndex).ToString("0") + "x";
         }
+    }
+
+    public static float BorderDiameter(float lensRadius, float thickness)
+    {
+        if (thickness < 0f)
+        {
+            thickness = 0f;
+        }
+
+        return (lensRadius + thickness) * 2f;
+    }
+
+    public static Vector2 MagnificationLabelPosition(Vector2 scopeCenter, float lensRadius, float borderThickness, float gap)
+    {
+        if (gap < 0f)
+        {
+            gap = 0f;
+        }
+
+        return new Vector2(scopeCenter.x + lensRadius + borderThickness + gap, scopeCenter.y);
     }
 
     static void PlaceMark(Image mark, Vector3 screen, bool visible)
