@@ -454,9 +454,18 @@ public class SniperScopeView : MonoBehaviour
 {
     static SniperScopeView active;
 
-    public const float LensRadius = 150f;
-    public const float BorderThickness = 3f;
-    public const float MagnificationGap = 8f;
+    public const float MinimapWidgetWidth = 593.71f;
+    public const float MinimapWidgetHeight = 1387.7f;
+    public const float MinimapScaleX = 0.25f;
+    public const float MinimapScaleY = 0.096f;
+    public const float BorderThickness = 6f;
+    public const float BottomBandDepth = 16f;
+    public const float BreathArcSpan = 0.18f;
+
+    public static float LensRadius
+    {
+        get { return MinimapCircleDiameter(MinimapWidgetWidth, MinimapWidgetHeight, MinimapScaleX, MinimapScaleY) * 0.5f; }
+    }
 
     public static Vector2 AimPixels;
     public static bool ShotIsBlocked;
@@ -473,7 +482,7 @@ public class SniperScopeView : MonoBehaviour
     Image blockedMarkA;
     Image blockedMarkB;
     Image breathTrack;
-    Image breathFill;
+    RectTransform bottomBand;
     Text magnificationLabel;
     Camera scopeCamera;
     RenderTexture texture;
@@ -590,39 +599,42 @@ public class SniperScopeView : MonoBehaviour
         active.blockedMarkA = MakeBar(canvasObject.transform, "ScopeBlockA", active.whiteSprite, 45f);
         active.blockedMarkB = MakeBar(canvasObject.transform, "ScopeBlockB", active.whiteSprite, -45f);
 
+        var bandObject = new GameObject("ScopeBottomBand");
+        bandObject.transform.SetParent(canvasObject.transform, false);
+        var bandImage = bandObject.AddComponent<Image>();
+        bandImage.sprite = BottomBorderSprite(LensRadius, LensRadius + BottomBandDepth);
+        bandImage.color = Color.black;
+        bandImage.raycastTarget = false;
+        active.bottomBand = bandImage.rectTransform;
+        var bandSize = (LensRadius + BottomBandDepth) * 2f;
+        active.bottomBand.sizeDelta = new Vector2(bandSize, bandSize);
+
         var trackObject = new GameObject("BreathTrack");
         trackObject.transform.SetParent(canvasObject.transform, false);
         active.breathTrack = trackObject.AddComponent<Image>();
-        active.breathTrack.sprite = active.whiteSprite;
+        active.breathTrack.sprite = RingSprite(LensRadius, LensRadius + BorderThickness);
+        active.breathTrack.type = Image.Type.Filled;
+        active.breathTrack.fillMethod = Image.FillMethod.Radial360;
+        active.breathTrack.fillOrigin = 0;
+        active.breathTrack.fillClockwise = true;
+        active.breathTrack.fillAmount = 0f;
         active.breathTrack.raycastTarget = false;
-        active.breathTrack.color = new Color(0.05f, 0.07f, 0.08f, 0.85f);
-        active.breathTrack.rectTransform.sizeDelta = new Vector2(120f, 8f);
+        active.breathTrack.color = new Color(0.25f, 0.95f, 0.45f, 0.95f);
+        var arcSize = BorderDiameter(LensRadius, BorderThickness);
+        active.breathTrack.rectTransform.sizeDelta = new Vector2(arcSize, arcSize);
         active.breathTrack.enabled = false;
-
-        var fillObject = new GameObject("BreathFill");
-        fillObject.transform.SetParent(trackObject.transform, false);
-        active.breathFill = fillObject.AddComponent<Image>();
-        active.breathFill.sprite = active.whiteSprite;
-        active.breathFill.raycastTarget = false;
-        active.breathFill.color = new Color(0.35f, 0.85f, 0.78f, 0.95f);
-        var fillRect = active.breathFill.rectTransform;
-        fillRect.anchorMin = Vector2.zero;
-        fillRect.anchorMax = Vector2.one;
-        fillRect.offsetMin = Vector2.zero;
-        fillRect.offsetMax = Vector2.zero;
-        fillRect.pivot = new Vector2(0f, 0.5f);
 
         var labelObject = new GameObject("ScopeMagnification");
         labelObject.transform.SetParent(canvasObject.transform, false);
         active.magnificationLabel = labelObject.AddComponent<Text>();
         active.magnificationLabel.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        active.magnificationLabel.fontSize = 18;
+        active.magnificationLabel.fontSize = 12;
         active.magnificationLabel.fontStyle = FontStyle.Bold;
-        active.magnificationLabel.alignment = TextAnchor.MiddleLeft;
-        active.magnificationLabel.color = new Color(1f, 0.35f, 0.28f, 0.95f);
+        active.magnificationLabel.alignment = TextAnchor.MiddleCenter;
+        active.magnificationLabel.color = new Color(0.55f, 0.95f, 0.82f, 0.95f);
         active.magnificationLabel.raycastTarget = false;
-        active.magnificationLabel.rectTransform.pivot = new Vector2(0f, 0.5f);
-        active.magnificationLabel.rectTransform.sizeDelta = new Vector2(72f, 28f);
+        active.magnificationLabel.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        active.magnificationLabel.rectTransform.sizeDelta = new Vector2(36f, 16f);
 
         active.texture = new RenderTexture(512, 512, 16);
         active.lens.texture = active.texture;
@@ -742,29 +754,71 @@ public class SniperScopeView : MonoBehaviour
 
         PlaceMark(blockedMarkA, screen, ShotIsBlocked);
         PlaceMark(blockedMarkB, screen, ShotIsBlocked);
-        var below = screen.y >= LensRadius + 48f;
-        var barY = below ? screen.y - LensRadius - 14f : screen.y + LensRadius + 14f;
-        if (breathTrack != null)
+        if (bottomBand != null)
         {
-            breathTrack.enabled = ShowBreath;
-            breathTrack.rectTransform.position = new Vector3(screen.x, barY, screen.z);
+            bottomBand.position = screen;
         }
 
-        if (breathFill != null)
+        if (breathTrack != null)
         {
             var fill = Breath < 0f ? 0f : (Breath > 1f ? 1f : Breath);
-            breathFill.rectTransform.anchorMax = new Vector2(fill, 1f);
-            breathFill.color = BreathBroken
-                ? new Color(0.85f, 0.16f, 0.12f, 0.95f)
-                : new Color(0.35f, 0.85f, 0.78f, 0.95f);
+            breathTrack.enabled = ShowBreath && fill > 0.001f;
+            breathTrack.rectTransform.position = screen;
+            breathTrack.fillAmount = BreathArcFill(fill, BreathArcSpan);
+            breathTrack.color = BreathBroken
+                ? new Color(0.9f, 0.22f, 0.16f, 0.95f)
+                : new Color(0.25f, 0.95f, 0.45f, 0.95f);
         }
 
         if (magnificationLabel != null)
         {
-            var label = MagnificationLabelPosition(screen, LensRadius, BorderThickness, MagnificationGap);
+            var label = MagnificationLabelPosition(screen, LensRadius, BorderThickness, BottomBandDepth);
             magnificationLabel.rectTransform.position = new Vector3(label.x, label.y, screen.z);
             magnificationLabel.text = SniperRifle.ScopeMagnificationAt(magIndex).ToString("0") + "x";
         }
+    }
+
+    public static float MinimapCircleDiameter(float widgetWidth, float widgetHeight, float scaleX, float scaleY)
+    {
+        var screenW = widgetWidth * scaleX;
+        var screenH = widgetHeight * scaleY;
+        if (screenW < 0f)
+        {
+            screenW = -screenW;
+        }
+
+        if (screenH < 0f)
+        {
+            screenH = -screenH;
+        }
+
+        var diameter = screenW < screenH ? screenW : screenH;
+        return diameter < 16f ? 16f : diameter;
+    }
+
+    public static float BreathArcFill(float breath, float span)
+    {
+        if (breath < 0f)
+        {
+            breath = 0f;
+        }
+
+        if (breath > 1f)
+        {
+            breath = 1f;
+        }
+
+        if (span < 0f)
+        {
+            span = 0f;
+        }
+
+        if (span > 0.45f)
+        {
+            span = 0.45f;
+        }
+
+        return breath * span;
     }
 
     public static float BorderDiameter(float lensRadius, float thickness)
@@ -777,14 +831,14 @@ public class SniperScopeView : MonoBehaviour
         return (lensRadius + thickness) * 2f;
     }
 
-    public static Vector2 MagnificationLabelPosition(Vector2 scopeCenter, float lensRadius, float borderThickness, float gap)
+    public static Vector2 MagnificationLabelPosition(Vector2 scopeCenter, float lensRadius, float borderThickness, float bandDepth)
     {
-        if (gap < 0f)
+        if (bandDepth < borderThickness)
         {
-            gap = 0f;
+            bandDepth = borderThickness;
         }
 
-        return new Vector2(scopeCenter.x + lensRadius + borderThickness + gap, scopeCenter.y);
+        return new Vector2(scopeCenter.x + lensRadius * 0.34f, scopeCenter.y - lensRadius - bandDepth * 0.5f);
     }
 
     static void PlaceMark(Image mark, Vector3 screen, bool visible)
@@ -806,7 +860,7 @@ public class SniperScopeView : MonoBehaviour
         image.sprite = sprite;
         image.raycastTarget = false;
         image.color = new Color(1f, 0.16f, 0.12f, 0.95f);
-        image.rectTransform.sizeDelta = new Vector2(150f, 6f);
+        image.rectTransform.sizeDelta = new Vector2(LensRadius * 1.05f, 3f);
         image.rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
         image.enabled = false;
         return image;
@@ -837,6 +891,47 @@ public class SniperScopeView : MonoBehaviour
                 var dy = y - center;
                 var inside = (dx * dx) + (dy * dy) <= radius * radius;
                 tex.SetPixel(x, y, inside ? Color.white : new Color(1f, 1f, 1f, 0f));
+            }
+        }
+
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+    }
+
+    static Sprite RingSprite(float innerRadius, float outerRadius)
+    {
+        return ArcSprite(innerRadius, outerRadius, -180f, 180f);
+    }
+
+    static Sprite BottomBorderSprite(float innerRadius, float outerRadius)
+    {
+        return ArcSprite(innerRadius, outerRadius, -150f, -30f);
+    }
+
+    static Sprite ArcSprite(float innerRadius, float outerRadius, float startDegrees, float endDegrees)
+    {
+        const int size = 160;
+        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        var center = (size - 1) * 0.5f;
+        var maxR = center - 0.5f;
+        var inner = outerRadius <= 0.001f ? 0f : maxR * (innerRadius / outerRadius);
+        if (inner < 0f)
+        {
+            inner = 0f;
+        }
+
+        var start = startDegrees * Mathf.Deg2Rad;
+        var end = endDegrees * Mathf.Deg2Rad;
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var dx = x - center;
+                var dy = y - center;
+                var dist = Mathf.Sqrt((dx * dx) + (dy * dy));
+                var angle = Mathf.Atan2(dy, dx);
+                var onArc = dist <= maxR && dist >= inner && angle >= start && angle <= end;
+                tex.SetPixel(x, y, onArc ? Color.white : new Color(1f, 1f, 1f, 0f));
             }
         }
 
