@@ -7,13 +7,22 @@ public class SniperRifle : Weapon
 {
     public float ScopeRangePullback = 3.5f;
 
-    public float ScopeMagnification = 8f;
+    [Tooltip("Starting scope zoom. Matched to the nearest Scope Zoom Step. Fire delay, bullet speed, lifetime, and energy are the fields above. Damage is the SniperRifleDmg asset.")]
+    public float ScopeMagnification = 10f;
+
+    [Tooltip("Camera magnification for each mouse-wheel step.")]
+    public float[] ScopeZoomSteps = { 8f, 10f, 12f };
+
+    [Tooltip("Name shown in the scope for each step. 2, 4, and 6 name the 8, 10, and 12 zooms.")]
+    public float[] ScopeZoomLabels = { 2f, 4f, 6f };
 
     public Sprite ScopeCrosshair;
 
     public ScopeSwaySettings Profile;
 
-    public static readonly float[] ScopeMagnifications = { 6f, 8f, 10f };
+    public static readonly float[] ScopeMagnifications = { 8f, 10f, 12f };
+
+    public static readonly float[] ScopeMagnificationLabels = { 2f, 4f, 6f };
 
     public const int DefaultScopeMagnificationIndex = 1;
 
@@ -68,7 +77,7 @@ public class SniperRifle : Weapon
             HideLaser();
         }
 
-        SniperScopeView.Set(isAltFire, ScopeCrosshair, ScopeMagnification);
+        SniperScopeView.Set(isAltFire, ScopeCrosshair, ScopeMagnification, ActiveZoomSteps(), ActiveZoomLabels());
         return null;
     }
 
@@ -106,6 +115,11 @@ public class SniperRifle : Weapon
 
     public static int StepScopeMagnification(int index, float scrollDelta)
     {
+        return StepScopeMagnification(index, scrollDelta, ScopeMagnifications.Length);
+    }
+
+    public static int StepScopeMagnification(int index, float scrollDelta, int stepCount)
+    {
         if (scrollDelta > 0.01f)
         {
             index++;
@@ -115,14 +129,19 @@ public class SniperRifle : Weapon
             index--;
         }
 
+        if (stepCount < 1)
+        {
+            stepCount = 1;
+        }
+
         if (index < 0)
         {
             index = 0;
         }
 
-        if (index >= ScopeMagnifications.Length)
+        if (index >= stepCount)
         {
-            index = ScopeMagnifications.Length - 1;
+            index = stepCount - 1;
         }
 
         return index;
@@ -130,11 +149,22 @@ public class SniperRifle : Weapon
 
     public static int NearestScopeMagnification(float zoom)
     {
+        return NearestScopeMagnification(zoom, ScopeMagnifications);
+    }
+
+    public static int NearestScopeMagnification(float zoom, float[] steps)
+    {
+        var table = steps != null && steps.Length > 0 ? steps : ScopeMagnifications;
         var best = DefaultScopeMagnificationIndex;
-        var bestGap = float.MaxValue;
-        for (var i = 0; i < ScopeMagnifications.Length; i++)
+        if (best >= table.Length)
         {
-            var gap = ScopeMagnifications[i] - zoom;
+            best = table.Length - 1;
+        }
+
+        var bestGap = float.MaxValue;
+        for (var i = 0; i < table.Length; i++)
+        {
+            var gap = table[i] - zoom;
             if (gap < 0f)
             {
                 gap = -gap;
@@ -152,17 +182,53 @@ public class SniperRifle : Weapon
 
     public static float ScopeMagnificationAt(int index)
     {
+        return ScopeMagnificationAt(index, ScopeMagnifications);
+    }
+
+    public static float ScopeMagnificationAt(int index, float[] steps)
+    {
+        return TableValue(index, steps != null && steps.Length > 0 ? steps : ScopeMagnifications);
+    }
+
+    public static string ScopeMagnificationName(int index)
+    {
+        return ScopeMagnificationName(index, ScopeMagnificationLabels);
+    }
+
+    public static string ScopeMagnificationName(int index, float[] labels)
+    {
+        var table = labels != null && labels.Length > 0 ? labels : ScopeMagnificationLabels;
+        return TableValue(index, table).ToString("0") + "x";
+    }
+
+    public float[] ActiveZoomSteps()
+    {
+        return ScopeZoomSteps != null && ScopeZoomSteps.Length > 0 ? ScopeZoomSteps : ScopeMagnifications;
+    }
+
+    public float[] ActiveZoomLabels()
+    {
+        return ScopeZoomLabels != null && ScopeZoomLabels.Length > 0 ? ScopeZoomLabels : ScopeMagnificationLabels;
+    }
+
+    static float TableValue(int index, float[] table)
+    {
+        if (table == null || table.Length == 0)
+        {
+            return 0f;
+        }
+
         if (index < 0)
         {
             index = 0;
         }
 
-        if (index >= ScopeMagnifications.Length)
+        if (index >= table.Length)
         {
-            index = ScopeMagnifications.Length - 1;
+            index = table.Length - 1;
         }
 
-        return ScopeMagnifications[index];
+        return table[index];
     }
 
     protected override Vector3 ApplyBulletSpread(IPlayerController player, Transform gunPortPos)
@@ -191,7 +257,7 @@ public class SniperRifle : Weapon
         sway = new ScopeSwayState();
         aimPixels = Vector2.zero;
         SniperScopeView.ClearHud();
-        SniperScopeView.Set(false, ScopeCrosshair, ScopeMagnification);
+        SniperScopeView.Set(false, ScopeCrosshair, ScopeMagnification, null, null);
         HideLaser();
     }
 
@@ -454,6 +520,7 @@ public class SniperScopeView : MonoBehaviour
 {
     static SniperScopeView active;
 
+    public const float ScopeDiameterScale = 1.05f;
     public const float MinimapWidgetWidth = 593.71f;
     public const float MinimapWidgetHeight = 1387.7f;
     public const float MinimapScaleX = 0.25f;
@@ -468,7 +535,7 @@ public class SniperScopeView : MonoBehaviour
 
     public static float LensRadius
     {
-        get { return MinimapCircleDiameter(MinimapWidgetWidth, MinimapWidgetHeight, MinimapScaleX, MinimapScaleY) * 0.5f; }
+        get { return MinimapCircleDiameter(MinimapWidgetWidth, MinimapWidgetHeight, MinimapScaleX, MinimapScaleY) * 0.5f * ScopeDiameterScale; }
     }
 
     public static Vector2 AimPixels;
@@ -488,6 +555,8 @@ public class SniperScopeView : MonoBehaviour
     Image breathTrack;
     RectTransform bottomBand;
     Text[] magGlyphs;
+    float[] zoomSteps;
+    float[] zoomLabels;
     Camera scopeCamera;
     RenderTexture texture;
     float magnification = 4f;
@@ -503,7 +572,7 @@ public class SniperScopeView : MonoBehaviour
         BreathBroken = false;
     }
 
-    public static void Set(bool on, Sprite sprite, float zoom)
+    public static void Set(bool on, Sprite sprite, float zoom, float[] steps, float[] labels)
     {
         if (!on)
         {
@@ -520,13 +589,15 @@ public class SniperScopeView : MonoBehaviour
         }
 
         Ensure();
+        active.zoomSteps = steps;
+        active.zoomLabels = labels;
         var opening = !active.gameObject.activeSelf;
         active.gameObject.SetActive(true);
         active.scopeCamera.enabled = true;
         if (opening)
         {
-            active.magIndex = SniperRifle.NearestScopeMagnification(zoom);
-            active.magnification = SniperRifle.ScopeMagnificationAt(active.magIndex);
+            active.magIndex = SniperRifle.NearestScopeMagnification(zoom, steps);
+            active.magnification = SniperRifle.ScopeMagnificationAt(active.magIndex, steps);
         }
         if (sprite != null)
         {
@@ -653,8 +724,9 @@ public class SniperScopeView : MonoBehaviour
         var scroll = Input.GetAxis("Mouse ScrollWheel");
         if (scroll > 0.01f || scroll < -0.01f)
         {
-            magIndex = SniperRifle.StepScopeMagnification(magIndex, scroll);
-            magnification = SniperRifle.ScopeMagnificationAt(magIndex);
+            var stepCount = zoomSteps != null && zoomSteps.Length > 0 ? zoomSteps.Length : SniperRifle.ScopeMagnifications.Length;
+            magIndex = SniperRifle.StepScopeMagnification(magIndex, scroll, stepCount);
+            magnification = SniperRifle.ScopeMagnificationAt(magIndex, zoomSteps);
         }
 
         Frame();
@@ -771,7 +843,7 @@ public class SniperScopeView : MonoBehaviour
 
         if (magGlyphs != null)
         {
-            var label = SniperRifle.ScopeMagnificationAt(magIndex).ToString("0") + "x";
+            var label = SniperRifle.ScopeMagnificationName(magIndex, zoomLabels);
             var arcRadius = LabelArcRadius(LensRadius, BottomBandDepth);
             for (var i = 0; i < magGlyphs.Length; i++)
             {
