@@ -231,6 +231,41 @@ public class SniperRifle : Weapon
         return table[index];
     }
 
+    protected override GameObject SpawnBullet(IPlayerController player, Vector3 position, Quaternion rotation)
+    {
+        var round = GetBulletToSpawn();
+        var capsule = round != null ? round.GetComponent<CapsuleCollider>() : null;
+        if (capsule != null)
+        {
+            position = MuzzleClearPosition(position, rotation * Vector3.forward, capsule.center, capsule.height, capsule.direction);
+        }
+
+        return base.SpawnBullet(player, position, rotation);
+    }
+
+    public static float BoltRearOffset(Vector3 center, float height, int direction)
+    {
+        var along = direction == 0 ? center.x : direction == 1 ? center.y : center.z;
+        return along - height * 0.5f;
+    }
+
+    public static Vector3 MuzzleClearPosition(Vector3 muzzle, Vector3 axisWorld, Vector3 center, float height, int direction)
+    {
+        var rear = BoltRearOffset(center, height, direction);
+        if (rear >= -0.0001f)
+        {
+            return muzzle;
+        }
+
+        var length = axisWorld.magnitude;
+        if (length < 0.0001f)
+        {
+            return muzzle;
+        }
+
+        return muzzle + axisWorld / length * (-rear);
+    }
+
     protected override Vector3 ApplyBulletSpread(IPlayerController player, Transform gunPortPos)
     {
         if (!scoping)

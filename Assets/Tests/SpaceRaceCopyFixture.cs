@@ -170,6 +170,17 @@ public class SpaceRaceCopyFixture
         Assert.AreEqual(1.26f, sight.y, 0.001f);
         var blocked = SniperRifle.LaserEnd(new Vector3(0f, 1.2f, 0f), new Vector3(0f, 1.2f, 8f), 3f);
         Assert.AreEqual(3f, blocked.z, 0.001f);
+        var muzzle = new Vector3(2f, 1f, 4f);
+        var forward = new Vector3(0f, 0f, 1f);
+        var rear = SniperRifle.BoltRearOffset(Vector3.zero, 1.8f, 2);
+        Assert.AreEqual(-0.9f, rear, 0.001f);
+        Assert.Less(rear, -0.15f);
+        var cleared = SniperRifle.MuzzleClearPosition(muzzle, forward, Vector3.zero, 1.8f, 2);
+        Assert.AreEqual(muzzle.z + 0.9f, cleared.z, 0.001f);
+        Assert.AreEqual(muzzle.x, cleared.x, 0.001f);
+        Assert.Greater(rear + (cleared.z - muzzle.z), -0.15f);
+        var alreadyClear = SniperRifle.MuzzleClearPosition(muzzle, forward, new Vector3(0f, 0f, 0.9f), 1.8f, 2);
+        Assert.AreEqual(muzzle.z, alreadyClear.z, 0.001f);
     }
 
     [Test]
