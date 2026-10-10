@@ -23,6 +23,16 @@ public class ThrowItemAction : Weapon
         get { return BulletVelocity * FlareThrow.SpeedMultiplier(chargeSeconds); }
     }
 
+    public override float ThrowChargeSeconds
+    {
+        get { return chargeSeconds; }
+    }
+
+    public override float ThrowSpeed
+    {
+        get { return ChargedBulletVelocity; }
+    }
+
     public override void BeginThrowCharge()
     {
         charging = true;
@@ -45,6 +55,12 @@ public class ThrowItemAction : Weapon
         chargeSeconds = 0f;
     }
 
+    public void OnDisable()
+    {
+        ClearThrowCharge();
+        ThrowPreview.Hide(transform);
+    }
+
     public override void Equip(IPlayerController player)
     {
         Debug.Log("No special affects.");
@@ -57,6 +73,18 @@ public class ThrowItemAction : Weapon
 
     public override void Animate(IPlayerController player)
     {
+    }
+
+    protected override Vector3 ApplyBulletSpread(IPlayerController player, Transform gunPortPos)
+    {
+        var savedMin = MinBulletDeviation;
+        var savedMax = MaxBulletDeviation;
+        MinBulletDeviation = 0f;
+        MaxBulletDeviation = 0f;
+        var result = base.ApplyBulletSpread(player, gunPortPos);
+        MinBulletDeviation = savedMin;
+        MaxBulletDeviation = savedMax;
+        return result;
     }
 
     protected override ISpawnData GenerateSpawnData(IPlayerController player)

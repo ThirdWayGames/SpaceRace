@@ -88,27 +88,65 @@ public static class FlareLighting
 
 public static class FlareThrow
 {
+    public const float MinDistanceMultiplier = 0.28f;
+
     public const float MaxDistanceMultiplier = 2f;
 
     public const float FullChargeSeconds = 1f;
 
     /// <summary>
     /// A flat throw spends a fixed time in the air, so travel distance scales with launch speed.
-    /// No charge keeps today's distance. A full hold doubles it.
+    /// The marker starts just in front of the player and reaches twice the old throw at a full hold.
     /// </summary>
     public static float SpeedMultiplier(float heldSeconds)
     {
-        if (heldSeconds <= 0f || MaxDistanceMultiplier <= 1f)
+        var charge = ChargeFraction(heldSeconds);
+        var min = MinDistanceMultiplier < 0f ? 0f : MinDistanceMultiplier;
+        var max = MaxDistanceMultiplier < min ? min : MaxDistanceMultiplier;
+        return min + (max - min) * charge;
+    }
+
+    public static float ChargeFraction(float heldSeconds)
+    {
+        if (heldSeconds <= 0f || FullChargeSeconds <= 0f)
         {
-            return 1f;
+            return heldSeconds <= 0f ? 0f : 1f;
         }
 
-        var charge = FullChargeSeconds <= 0f ? 1f : heldSeconds / FullChargeSeconds;
-        if (charge > 1f)
+        var charge = heldSeconds / FullChargeSeconds;
+        return charge > 1f ? 1f : charge;
+    }
+
+    /// <summary>
+    /// Flat throw. The projectile leaves level with the ground and lands where gravity has dropped it.
+    /// Distance grows with launch speed, which grows with the charge.
+    /// </summary>
+    public static Vector3 LandingPoint(Vector3 origin, Vector3 direction, float speed, float groundY, float gravity)
+    {
+        var flat = direction;
+        flat.y = 0f;
+        if (flat.sqrMagnitude < 0.0001f)
         {
-            charge = 1f;
+            flat = new Vector3(0f, 0f, 1f);
+        }
+        else
+        {
+            flat.Normalize();
         }
 
-        return 1f + (MaxDistanceMultiplier - 1f) * charge;
+        if (speed < 0f)
+        {
+            speed = 0f;
+        }
+
+        var drop = origin.y - groundY;
+        if (drop < 0.2f)
+        {
+            drop = 0.2f;
+        }
+
+        var g = gravity < 0.1f ? 9.81f : gravity;
+        var time = Mathf.Sqrt((2f * drop) / g);
+        return new Vector3(origin.x, groundY + 0.05f, origin.z) + flat * (speed * time);
     }
 }

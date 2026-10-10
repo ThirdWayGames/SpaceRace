@@ -36,8 +36,9 @@ namespace Assets.Scripts.Systems
         {
             if (!entity.MovementComponent.DisableMovement)
             {
-                entity.MovementComponent.IsRunning = Input.GetKey(KeyCode.LeftShift);
-                entity.MovementComponent.IsDucking = Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.LeftShift);
+                var shiftHeld = Input.GetKey(KeyCode.LeftShift);
+                entity.MovementComponent.IsRunning = CameraFollow3D.AllowSprint(CameraFollow3D.LocalViewScoped(), shiftHeld);
+                entity.MovementComponent.IsDucking = Input.GetKey(KeyCode.LeftControl) && !shiftHeld;
 
                 var horizontal = Input.GetAxis(entity.MovementComponent.HorizontalAxis);
                 var vertical = Input.GetAxis(entity.MovementComponent.VerticalAxis);

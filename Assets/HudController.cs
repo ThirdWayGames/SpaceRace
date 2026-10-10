@@ -78,6 +78,14 @@ namespace Assets
 
         private Camera MiniMapCamera;
 
+        Image healthFill;
+
+        Image staminaFill;
+
+        Image energyFill;
+
+        GameObject howToPanel;
+
         public void Awake()
         {
             if (PrevGameCompletionTime as IntVariable == null)
@@ -142,10 +150,14 @@ namespace Assets
             }
 
             var coreHealthPanel = FindChild("CoreHealthPanel");
-            if (leftEquipMode != null)
+            if (coreHealthPanel != null)
             {
                 PowerCoreHealthPanel = coreHealthPanel.GetComponentInChildren<CanvasRenderer>();
             }
+
+            healthFill = FillImage(HealthSlider);
+            staminaFill = FillImage(StaminaSlider);
+            energyFill = FillImage(EnergySlider);
         }
 
         public void Start()
@@ -155,7 +167,10 @@ namespace Assets
             {
                 // Hide it when we start.
                 GameMenu.SetActive(false);
+                EnsurePauseActions();
             }
+
+            EnsureHudReadability();
 
             if (MiniMap != null)
             {
@@ -184,9 +199,11 @@ namespace Assets
 
         public void Update()
         {
-            if (ObservedPlayer == null)
+            var manager = PlayerManager3D.Get();
+            var localPlayer = manager != null ? manager.LocalPlayerInstance : null;
+            if (ObservedPlayer != localPlayer)
             {
-                SetObservedPlayer(PlayerManager3D.Get().LocalPlayerInstance);
+                SetObservedPlayer(localPlayer);
             }
 
             if (StaminaSlider != null && StaminaComponent != null)
@@ -206,6 +223,8 @@ namespace Assets
                 EnergySlider.maxValue = EnergyComponent.MaxValue < 100 ? 100 : EnergyComponent.MaxValue;
                 EnergySlider.value = EnergyComponent.CurrentValue;
             }
+
+            UpdateVitalColors();
 
             if (RedCoreHealthSlider != null & redCoreHealthComponent != null)
             {
@@ -227,6 +246,10 @@ namespace Assets
                 {
                     // Toggle the menu active state.
                     GameMenu.SetActive(!GameMenu.GetActive());
+                    if (!GameMenu.activeSelf && howToPanel != null)
+                    {
+                        howToPanel.SetActive(false);
+                    }
                 }
             }
 
@@ -249,64 +272,27 @@ namespace Assets
                 }
             }
 
-            if (FireModeSingle != null && FireModeCloud != null && FireModeBeam != null)
+            if (ObservedPlayer != null)
             {
-                if (ObservedPlayer != null)
+                var equipment = ObservedPlayer.GetComponent<EquipmentComponent>();
+                if (equipment != null)
                 {
-                    var equipment = ObservedPlayer.GetComponent<EquipmentComponent>();
-                    if (equipment != null)
+                    var leftWeapon = equipment.LeftHand != null ? equipment.LeftHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>() : null;
+                    var rightWeapon = equipment.RightHand != null ? equipment.RightHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>() : null;
+                    if (leftWeapon != null && leftWeapon.OccupiesBothHands)
                     {
-                        if (RightEquipmentFireMode != null)
-                        {
-                            var weapon = equipment.LeftHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>();
-                            if (weapon != null)
-                            {
-                                switch (weapon.CurrentFireMode)
-                                {
-                                    case Scripts.Enums.FireMode.Single:
-                                        {
-                                            LeftEquipmentFireMode.sprite = FireModeSingle;
-                                            break;
-                                        }
-                                    case Scripts.Enums.FireMode.Cloud:
-                                        {
-                                            LeftEquipmentFireMode.sprite = FireModeCloud;
-                                            break;
-                                        }
-                                    case Scripts.Enums.FireMode.Beam:
-                                        {
-                                            LeftEquipmentFireMode.sprite = FireModeBeam;
-                                            break;
-                                        }
-                                }
-                            }
-                        }
-
-                        if (RightEquipmentFireMode != null)
-                        {
-                            var weapon = equipment.RightHand.GetComponentInChildren<Assets.Scripts.GameObjects.Weapon>();
-                            if (weapon != null)
-                            {
-                                switch (weapon.CurrentFireMode)
-                                {
-                                    case Scripts.Enums.FireMode.Single:
-                                        {
-                                            RightEquipmentFireMode.sprite = FireModeSingle;
-                                            break;
-                                        }
-                                    case Scripts.Enums.FireMode.Cloud:
-                                        {
-                                            RightEquipmentFireMode.sprite = FireModeCloud;
-                                            break;
-                                        }
-                                    case Scripts.Enums.FireMode.Beam:
-                                        {
-                                            RightEquipmentFireMode.sprite = FireModeBeam;
-                                            break;
-                                        }
-                                }
-                            }
-                        }
+                        ApplyHandIcon(LeftEquipmentFireMode, equipment.LeftHand);
+                        ApplyHandIcon(RightEquipmentFireMode, equipment.LeftHand);
+                    }
+                    else if (rightWeapon != null && rightWeapon.OccupiesBothHands)
+                    {
+                        ApplyHandIcon(LeftEquipmentFireMode, equipment.RightHand);
+                        ApplyHandIcon(RightEquipmentFireMode, equipment.RightHand);
+                    }
+                    else
+                    {
+                        ApplyHandIcon(LeftEquipmentFireMode, equipment.LeftHand);
+                        ApplyHandIcon(RightEquipmentFireMode, equipment.RightHand);
                     }
                 }
             }
@@ -322,20 +308,23 @@ namespace Assets
                 {
                     // Calculate the remaining time based on the current time since game start.
                     var secondsRemaining = ((IntVariable)PrevGameCompletionTime).Value - (int)Time.timeSinceLevelLoad;
-                    if (secondsRemaining == lastBroadcastSeconds)
+                    if (secondsRemaining < 0)
                     {
-                        return;
+                        secondsRemaining = 0;
                     }
 
-                    lastBroadcastSeconds = secondsRemaining;
-                    var photonView = this.GetComponent<PhotonView>();
-                    if (photonView != null && PhotonNetwork.inRoom)
+                    if (secondsRemaining != lastBroadcastSeconds)
                     {
-                        PhotonNetwork.RPC(photonView, "UpdateTimeRemaining", PhotonNetworkSettings.EventTarget, false, new object[] { secondsRemaining });
-                    }
-                    else
-                    {
-                        UpdateTimeRemaining(secondsRemaining);
+                        lastBroadcastSeconds = secondsRemaining;
+                        var photonView = this.GetComponent<PhotonView>();
+                        if (photonView != null && PhotonNetwork.inRoom)
+                        {
+                            PhotonNetwork.RPC(photonView, "UpdateTimeRemaining", PhotonNetworkSettings.EventTarget, false, new object[] { secondsRemaining });
+                        }
+                        else
+                        {
+                            UpdateTimeRemaining(secondsRemaining);
+                        }
                     }
                 }
             }
@@ -344,24 +333,55 @@ namespace Assets
 
         public void SetObservedPlayer(GameObject player = null)
         {
-            if (ObservedPlayer == null)
+            if (player == null)
             {
-                if (player != null)
-                { 
-                    ObservedPlayer = player;
-                }
-                else
-                {
-                    Debug.LogWarning("No observed player in the HUD controller and no Local player to use instead.");
-                }
+                var manager = PlayerManager3D.Get();
+                player = manager != null ? manager.LocalPlayerInstance : null;
             }
 
-            if (ObservedPlayer != null)
+            if (player == ObservedPlayer && EnergyComponent != null)
             {
-                StaminaComponent = ObservedPlayer.GetComponent<StaminaComponent>();
-                HealthComponent = ObservedPlayer.GetComponent<HealthComponent>();
-                EnergyComponent = ObservedPlayer.GetComponent<EnergyComponent>();
+                PushSlider(EnergySlider, EnergyComponent);
+                return;
             }
+
+            ObservedPlayer = player;
+            StaminaComponent = null;
+            HealthComponent = null;
+            EnergyComponent = null;
+            if (ObservedPlayer == null)
+            {
+                return;
+            }
+
+            StaminaComponent = ObservedPlayer.GetComponent<StaminaComponent>();
+            HealthComponent = ObservedPlayer.GetComponent<HealthComponent>();
+            EnergyComponent = ObservedPlayer.GetComponent<EnergyComponent>();
+            PushSlider(StaminaSlider, StaminaComponent);
+            PushSlider(HealthSlider, HealthComponent);
+            PushSlider(EnergySlider, EnergyComponent);
+        }
+
+        static void PushSlider(Slider slider, MutatableComponent vital)
+        {
+            if (slider == null || vital == null)
+            {
+                return;
+            }
+
+            var max = vital.MaxValue < 100f ? 100f : vital.MaxValue;
+            if (slider.maxValue != max)
+            {
+                slider.maxValue = max;
+            }
+
+            var current = vital.CurrentValue;
+            if (Mathf.Approximately(slider.value, current))
+            {
+                slider.value = current > 0f ? 0f : 1f;
+            }
+
+            slider.value = current;
         }
 
         [PunRPC]
@@ -369,18 +389,195 @@ namespace Assets
         {
             if (GameTimeRemainingText != null)
             {
-                var timeSpanRemaining = new TimeSpan(0, 0, seconds);
-                if (timeSpanRemaining.TotalMinutes < 1)
-                {
-                    GameTimeRemainingText.text = string.Format("TIME: {0}", timeSpanRemaining.TotalSeconds);
-                }
-                else
-                {
-                    GameTimeRemainingText.text = string.Format("TIME: {0}:{1}", timeSpanRemaining.Minutes, timeSpanRemaining.Seconds);
-                }
-
+                GameTimeRemainingText.text = SpaceRaceCopy.FormatTimeRemaining(seconds);
                 GameTimeRemainingText.enabled = true;
             }
+        }
+
+        static void ApplyHandIcon(Image target, GameObject hand)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var held = hand == null ? null : hand.GetComponentInChildren<Assets.Scripts.GameObjects.Equipment>();
+            var sprite = HandIcons.ForEquipment(held);
+            target.preserveAspect = true;
+            target.color = Color.white;
+            target.enabled = sprite != null;
+            if (sprite != null && target.sprite != sprite)
+            {
+                target.sprite = sprite;
+            }
+        }
+
+        static Image FillImage(Slider slider)
+        {
+            if (slider == null || slider.fillRect == null)
+            {
+                return null;
+            }
+
+            return slider.fillRect.GetComponent<Image>();
+        }
+
+        void EnsureHudReadability()
+        {
+            TintFill(healthFill, SpaceRaceTheme.Health);
+            TintFill(staminaFill, SpaceRaceTheme.Stamina);
+            TintFill(energyFill, SpaceRaceTheme.Energy);
+            TintFill(FillImage(RedCoreHealthSlider), SpaceRaceTheme.RedTeam);
+            TintFill(FillImage(BlueCoreHealthSlider), SpaceRaceTheme.BlueTeam);
+            EnsureCoreLabel(RedCoreHealthSlider, "RED CORE", SpaceRaceTheme.RedTeam);
+            EnsureCoreLabel(BlueCoreHealthSlider, "BLUE CORE", SpaceRaceTheme.BlueTeam);
+            EnsureMapHint();
+        }
+
+        void UpdateVitalColors()
+        {
+            TintFill(staminaFill, SpaceRaceTheme.Stamina);
+            TintFill(energyFill, SpaceRaceTheme.Energy);
+
+            if (healthFill == null || HealthComponent == null || HealthComponent.MaxValue <= 0)
+            {
+                TintFill(healthFill, SpaceRaceTheme.Health);
+                return;
+            }
+
+            var ratio = HealthComponent.CurrentValue / HealthComponent.MaxValue;
+            if (ratio > 0f && ratio < 0.25f)
+            {
+                var pulse = Mathf.PingPong(Time.time, 0.45f);
+                healthFill.color = Color.Lerp(SpaceRaceTheme.Health, Color.white, pulse);
+            }
+            else
+            {
+                healthFill.color = SpaceRaceTheme.Health;
+            }
+        }
+
+        static void TintFill(Image fill, Color color)
+        {
+            if (fill != null)
+            {
+                fill.color = color;
+            }
+        }
+
+        static void EnsureCoreLabel(Slider slider, string label, Color color)
+        {
+            if (slider == null)
+            {
+                return;
+            }
+
+            var parent = slider.transform.parent != null ? slider.transform.parent : slider.transform;
+            var existing = parent.Find("CoreLabel");
+            Text text;
+            if (existing == null)
+            {
+                text = SpaceRaceWidgets.CreateText(parent, "CoreLabel", label, 12, color, TextAnchor.MiddleCenter);
+                var rect = text.rectTransform;
+                rect.anchorMin = new Vector2(0f, 1f);
+                rect.anchorMax = new Vector2(1f, 1f);
+                rect.pivot = new Vector2(0.5f, 0f);
+                rect.anchoredPosition = new Vector2(0f, 2f);
+                rect.sizeDelta = new Vector2(0f, 18f);
+            }
+            else
+            {
+                text = existing.GetComponent<Text>();
+            }
+
+            if (text != null)
+            {
+                text.text = label;
+                text.color = color;
+            }
+        }
+
+        void EnsureMapHint()
+        {
+            if (MiniMap == null || MiniMap.transform.Find("MapHint") != null)
+            {
+                return;
+            }
+
+            var text = SpaceRaceWidgets.CreateText(MiniMap.transform, "MapHint", "M", 14, SpaceRaceTheme.Teal, TextAnchor.MiddleCenter);
+            var rect = text.rectTransform;
+            rect.anchorMin = new Vector2(1f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(1f, 0f);
+            rect.anchoredPosition = new Vector2(-4f, 4f);
+            rect.sizeDelta = new Vector2(24f, 18f);
+        }
+
+        void EnsurePauseActions()
+        {
+            if (GameMenu == null || GameMenu.transform.Find("SpaceRacePauseActions") != null)
+            {
+                return;
+            }
+
+            var column = new GameObject("SpaceRacePauseActions", typeof(RectTransform));
+            column.transform.SetParent(GameMenu.transform, false);
+            var columnRect = column.GetComponent<RectTransform>();
+            columnRect.anchorMin = new Vector2(1f, 0.5f);
+            columnRect.anchorMax = new Vector2(1f, 0.5f);
+            columnRect.pivot = new Vector2(0f, 0.5f);
+            columnRect.anchoredPosition = new Vector2(16f, 0f);
+            columnRect.sizeDelta = new Vector2(200f, 180f);
+
+            var resume = SpaceRaceWidgets.CreateButton(column.transform, "Resume", "Resume", () =>
+            {
+                GameMenu.SetActive(false);
+                if (howToPanel != null)
+                {
+                    howToPanel.SetActive(false);
+                }
+            });
+            PlacePauseButton(resume, 60f);
+
+            var howTo = SpaceRaceWidgets.CreateButton(column.transform, "HowToPlay", "How to play", ToggleHowToPlay);
+            PlacePauseButton(howTo, 0f);
+
+            var menuButtons = GameMenu.GetComponentsInChildren<Button>(true);
+            for (var i = 0; i < menuButtons.Length; i++)
+            {
+                if (menuButtons[i].gameObject.name != "Quit")
+                {
+                    continue;
+                }
+
+                var quitLabel = menuButtons[i].GetComponentInChildren<Text>();
+                if (quitLabel != null)
+                {
+                    quitLabel.text = "Leave match";
+                }
+            }
+        }
+
+        static void PlacePauseButton(Button button, float y)
+        {
+            var rect = button.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = new Vector2(0f, y);
+            rect.sizeDelta = new Vector2(190f, 44f);
+        }
+
+        void ToggleHowToPlay()
+        {
+            if (howToPanel == null)
+            {
+                var parent = GameMenu.transform.parent != null ? GameMenu.transform.parent : GameMenu.transform;
+                howToPanel = SpaceRaceWidgets.CreateHowToCard(parent, ToggleHowToPlay);
+                return;
+            }
+
+            howToPanel.SetActive(!howToPanel.activeSelf);
         }
 
         // every 2 seconds perform the print()
