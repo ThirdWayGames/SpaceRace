@@ -520,7 +520,7 @@ public class SniperScopeView : MonoBehaviour
 {
     static SniperScopeView active;
 
-    public const float ScopeDiameterScale = 1.05f;
+    public const float ScopeDiameterScale = 1.05f * 1.05f;
     public const float MinimapWidgetWidth = 593.71f;
     public const float MinimapWidgetHeight = 1387.7f;
     public const float MinimapScaleX = 0.25f;

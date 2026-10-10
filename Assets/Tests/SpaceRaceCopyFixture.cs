@@ -127,7 +127,7 @@ public class SpaceRaceCopyFixture
         var mapDiameter = SniperScopeView.MinimapCircleDiameter(SniperScopeView.MinimapWidgetWidth, SniperScopeView.MinimapWidgetHeight, SniperScopeView.MinimapScaleX, SniperScopeView.MinimapScaleY);
         Assert.AreEqual(133.219f, mapDiameter, 0.05f);
         Assert.AreEqual(mapDiameter * 0.5f * SniperScopeView.ScopeDiameterScale, SniperScopeView.LensRadius, 0.001f);
-        Assert.AreEqual(1.05f, SniperScopeView.ScopeDiameterScale, 0.001f);
+        Assert.AreEqual(1.05f * 1.05f, SniperScopeView.ScopeDiameterScale, 0.001f);
         Assert.IsTrue(SniperScopeView.BorderThickness >= 5f);
         Assert.AreEqual((SniperScopeView.LensRadius + SniperScopeView.BorderThickness) * 2f, SniperScopeView.BorderDiameter(SniperScopeView.LensRadius, SniperScopeView.BorderThickness), 0.001f);
         var breathArc = SniperScopeView.BreathArcPosition(new Vector3(400f, 300f, 0f), SniperScopeView.BreathArcOffsetY);
