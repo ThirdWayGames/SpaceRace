@@ -7,13 +7,13 @@ public class SniperRifle : Weapon
 {
     public float ScopeRangePullback = 3.5f;
 
-    public float ScopeMagnification = 4f;
+    public float ScopeMagnification = 8f;
 
     public Sprite ScopeCrosshair;
 
     public ScopeSwaySettings Profile;
 
-    public static readonly float[] ScopeMagnifications = { 2f, 4f, 8f };
+    public static readonly float[] ScopeMagnifications = { 6f, 8f, 10f };
 
     public const int DefaultScopeMagnificationIndex = 1;
 
@@ -461,6 +461,10 @@ public class SniperScopeView : MonoBehaviour
     public const float BorderThickness = 6f;
     public const float BottomBandDepth = 16f;
     public const float BreathArcSpan = 0.18f;
+    public const float BreathArcOffsetY = -5f;
+    public const float LabelArcCenter = -62f;
+    public const float LabelGlyphSpacing = 11f;
+    const int MaxMagnificationGlyphs = 4;
 
     public static float LensRadius
     {
@@ -483,7 +487,7 @@ public class SniperScopeView : MonoBehaviour
     Image blockedMarkB;
     Image breathTrack;
     RectTransform bottomBand;
-    Text magnificationLabel;
+    Text[] magGlyphs;
     Camera scopeCamera;
     RenderTexture texture;
     float magnification = 4f;
@@ -624,17 +628,11 @@ public class SniperScopeView : MonoBehaviour
         active.breathTrack.rectTransform.sizeDelta = new Vector2(arcSize, arcSize);
         active.breathTrack.enabled = false;
 
-        var labelObject = new GameObject("ScopeMagnification");
-        labelObject.transform.SetParent(canvasObject.transform, false);
-        active.magnificationLabel = labelObject.AddComponent<Text>();
-        active.magnificationLabel.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        active.magnificationLabel.fontSize = 12;
-        active.magnificationLabel.fontStyle = FontStyle.Bold;
-        active.magnificationLabel.alignment = TextAnchor.MiddleCenter;
-        active.magnificationLabel.color = new Color(0.55f, 0.95f, 0.82f, 0.95f);
-        active.magnificationLabel.raycastTarget = false;
-        active.magnificationLabel.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-        active.magnificationLabel.rectTransform.sizeDelta = new Vector2(36f, 16f);
+        active.magGlyphs = new Text[MaxMagnificationGlyphs];
+        for (var i = 0; i < active.magGlyphs.Length; i++)
+        {
+            active.magGlyphs[i] = MakeMagnificationGlyph(canvasObject.transform);
+        }
 
         active.texture = new RenderTexture(512, 512, 16);
         active.lens.texture = active.texture;
@@ -763,19 +761,86 @@ public class SniperScopeView : MonoBehaviour
         {
             var fill = Breath < 0f ? 0f : (Breath > 1f ? 1f : Breath);
             breathTrack.enabled = ShowBreath && fill > 0.001f;
-            breathTrack.rectTransform.position = screen;
+            var arc = BreathArcPosition(screen, BreathArcOffsetY);
+            breathTrack.rectTransform.position = arc;
             breathTrack.fillAmount = BreathArcFill(fill, BreathArcSpan);
             breathTrack.color = BreathBroken
                 ? new Color(0.9f, 0.22f, 0.16f, 0.95f)
                 : new Color(0.25f, 0.95f, 0.45f, 0.95f);
         }
 
-        if (magnificationLabel != null)
+        if (magGlyphs != null)
         {
-            var label = MagnificationLabelPosition(screen, LensRadius, BorderThickness, BottomBandDepth);
-            magnificationLabel.rectTransform.position = new Vector3(label.x, label.y, screen.z);
-            magnificationLabel.text = SniperRifle.ScopeMagnificationAt(magIndex).ToString("0") + "x";
+            var label = SniperRifle.ScopeMagnificationAt(magIndex).ToString("0") + "x";
+            var arcRadius = LabelArcRadius(LensRadius, BottomBandDepth);
+            for (var i = 0; i < magGlyphs.Length; i++)
+            {
+                var glyph = magGlyphs[i];
+                if (glyph == null)
+                {
+                    continue;
+                }
+
+                var show = i < label.Length;
+                glyph.enabled = show;
+                if (!show)
+                {
+                    continue;
+                }
+
+                var angle = CurvedGlyphAngle(i, label.Length, LabelArcCenter, LabelGlyphSpacing);
+                var pos = CurvedGlyphPosition(screen, arcRadius, angle);
+                glyph.rectTransform.position = new Vector3(pos.x, pos.y, screen.z);
+                glyph.rectTransform.localRotation = Quaternion.Euler(0f, 0f, CurvedGlyphRotation(angle));
+                glyph.text = label[i].ToString();
+            }
         }
+    }
+
+    public static Vector3 BreathArcPosition(Vector3 scopeCenter, float offsetY)
+    {
+        return new Vector3(scopeCenter.x, scopeCenter.y + offsetY, scopeCenter.z);
+    }
+
+    public static float LabelArcRadius(float lensRadius, float bandDepth)
+    {
+        if (bandDepth < 0f)
+        {
+            bandDepth = 0f;
+        }
+
+        return lensRadius + bandDepth * 0.5f;
+    }
+
+    public static float CurvedGlyphAngle(int index, int count, float centerAngle, float spacing)
+    {
+        if (count < 1)
+        {
+            count = 1;
+        }
+
+        if (index < 0)
+        {
+            index = 0;
+        }
+
+        if (index >= count)
+        {
+            index = count - 1;
+        }
+
+        return centerAngle + (index - (count - 1) * 0.5f) * spacing;
+    }
+
+    public static Vector2 CurvedGlyphPosition(Vector2 scopeCenter, float radius, float angleDegrees)
+    {
+        var radians = angleDegrees * Mathf.Deg2Rad;
+        return new Vector2(scopeCenter.x + Mathf.Cos(radians) * radius, scopeCenter.y + Mathf.Sin(radians) * radius);
+    }
+
+    public static float CurvedGlyphRotation(float angleDegrees)
+    {
+        return angleDegrees + 90f;
     }
 
     public static float MinimapCircleDiameter(float widgetWidth, float widgetHeight, float scaleX, float scaleY)
@@ -838,7 +903,26 @@ public class SniperScopeView : MonoBehaviour
             bandDepth = borderThickness;
         }
 
-        return new Vector2(scopeCenter.x + lensRadius * 0.34f, scopeCenter.y - lensRadius - bandDepth * 0.5f);
+        return CurvedGlyphPosition(scopeCenter, LabelArcRadius(lensRadius, bandDepth), LabelArcCenter);
+    }
+
+    static Text MakeMagnificationGlyph(Transform parent)
+    {
+        var labelObject = new GameObject("ScopeMagnification");
+        labelObject.transform.SetParent(parent, false);
+        var text = labelObject.AddComponent<Text>();
+        text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        text.fontSize = 11;
+        text.fontStyle = FontStyle.Bold;
+        text.alignment = TextAnchor.MiddleCenter;
+        text.color = new Color(0.55f, 0.95f, 0.82f, 0.95f);
+        text.raycastTarget = false;
+        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        text.verticalOverflow = VerticalWrapMode.Overflow;
+        text.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        text.rectTransform.sizeDelta = new Vector2(16f, 16f);
+        text.enabled = false;
+        return text;
     }
 
     static void PlaceMark(Image mark, Vector3 screen, bool visible)
