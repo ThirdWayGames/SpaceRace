@@ -45,51 +45,102 @@ namespace Assets.Scripts.Components
 
         public void Update()
         {
-            if (UiOverlay.GetComponent<Image>() != null)
+            var image = OverlayImage();
+            if (image == null)
             {
-                if (UiOverlaySprite != null)
+                return;
+            }
+
+            var targetAlpha = Mathf.Clamp(UiOverlayColour.a, 0f, 1f);
+            if (UiOverlaySprite != null && image.sprite != UiOverlaySprite)
+            {
+                image.sprite = UiOverlaySprite;
+            }
+
+            if (targetAlpha <= 0.02f)
+            {
+                var hidden = image.color;
+                hidden.a = 0f;
+                image.color = hidden;
+                image.enabled = false;
+                if (image.canvasRenderer != null)
                 {
-                    UiOverlay.GetComponent<Image>().sprite = UiOverlaySprite;
-                    if (UiOverlayColour.a != Mathf.Clamp(UiOverlay.GetComponent<Image>().color.a, 0f, 1f))
-                    {
-                        if (!isCoRoutineRunning)
-                        {
-                            StartCoroutine(FadeTo(UiOverlay.GetComponent<Image>().color.a, UiOverlayColour.a, UiOverlayRevealSpeed));
-                        }
-                    }
-                    else
-                    {
-                        StopAllCoroutines();
-                        isCoRoutineRunning = false;
-                    }
+                    image.canvasRenderer.cullTransparentMesh = true;
                 }
-                else
+
+                StopFade();
+                return;
+            }
+
+            if (!image.enabled)
+            {
+                image.enabled = true;
+            }
+
+            if (Mathf.Abs(image.color.a - targetAlpha) > 0.001f)
+            {
+                if (!isCoRoutineRunning)
                 {
-                    if (UiOverlayColour.a != Mathf.Clamp(UiOverlay.GetComponent<Image>().color.a, 0f, 1f))
-                    {
-                        if (!isCoRoutineRunning)
-                        {
-                            StartCoroutine(FadeTo(UiOverlay.GetComponent<Image>().color.a, UiOverlayColour.a, UiOverlayRevealSpeed));
-                        }
-                    }
-                    else
-                    {
-                        UiOverlay.GetComponent<Image>().sprite = UiOverlaySprite;
-                        StopAllCoroutines();
-                        isCoRoutineRunning = false;
-                    }
+                    StartCoroutine(FadeTo(image, image.color.a, targetAlpha, UiOverlayRevealSpeed));
                 }
+            }
+            else
+            {
+                StopFade();
             }
         }
 
-        IEnumerator FadeTo(float fromValue, float toValue, float aTime)
+        Image OverlayImage()
+        {
+            if (UiOverlay == null)
+            {
+                return null;
+            }
+
+            var image = UiOverlay.GetComponent<Image>();
+            if (image == null && UiOverlay.parent != null)
+            {
+                image = UiOverlay.parent.GetComponent<Image>();
+            }
+
+            return image;
+        }
+
+        void StopFade()
+        {
+            if (isCoRoutineRunning)
+            {
+                StopAllCoroutines();
+                isCoRoutineRunning = false;
+            }
+        }
+
+        IEnumerator FadeTo(Image image, float fromValue, float toValue, float aTime)
         {
             isCoRoutineRunning = true;
+            if (aTime <= 0f)
+            {
+                aTime = 0.01f;
+            }
+
             for (float t = 0.0f; t < 1.0f; t += Time.deltaTime / aTime)
             {
-                Color newColor = new Color(1, 1, 1, Mathf.Clamp(Mathf.Lerp(fromValue, toValue, t), 0f, 1f));
-                UiOverlay.GetComponent<Image>().color = newColor;
+                if (image == null)
+                {
+                    break;
+                }
+
+                var newColor = new Color(1f, 1f, 1f, Mathf.Clamp(Mathf.Lerp(fromValue, toValue, t), 0f, 1f));
+                image.color = newColor;
+                image.enabled = newColor.a > 0.02f;
                 yield return null;
+            }
+
+            if (image != null)
+            {
+                var finalColor = new Color(1f, 1f, 1f, Mathf.Clamp(toValue, 0f, 1f));
+                image.color = finalColor;
+                image.enabled = finalColor.a > 0.02f;
             }
 
             isCoRoutineRunning = false;

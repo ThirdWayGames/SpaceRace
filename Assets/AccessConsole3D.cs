@@ -82,6 +82,7 @@ public class AccessConsole3D : Photon.PunBehaviour, IConsole
             if (consoleTipCanv != null)
             {
                 ConsoleToolTip = consoleTipCanv;
+                FitConsoleTip(consoleTipCanv.GetComponentInChildren<Text>());
             }
         }
     }
@@ -172,6 +173,7 @@ public class AccessConsole3D : Photon.PunBehaviour, IConsole
                                         string.Format("No {0}", PlayerAccessRequirements.ToArray()) : 
                             "!! ACCESS DENIED !!";
                         consoleAccessText.text = accessText;
+                        FitConsoleTip(consoleAccessText);
                     }
                 }
 
@@ -460,6 +462,51 @@ public class AccessConsole3D : Photon.PunBehaviour, IConsole
         }
 
         return result;
+    }
+
+    protected virtual void FitConsoleTip(Text label)
+    {
+        if (label == null || ConsoleToolTip == null)
+        {
+            return;
+        }
+
+        label.horizontalOverflow = HorizontalWrapMode.Overflow;
+        label.verticalOverflow = VerticalWrapMode.Overflow;
+        label.alignment = TextAnchor.MiddleCenter;
+
+        var textRect = label.rectTransform;
+        var characterCount = string.IsNullOrEmpty(label.text) ? 0 : label.text.Length;
+        var preferred = 0f;
+        if (label.font != null)
+        {
+            preferred = label.preferredWidth;
+        }
+
+        var width = ConsoleTipLayout.TextWidth(preferred, characterCount);
+        if (width < textRect.sizeDelta.x)
+        {
+            width = textRect.sizeDelta.x;
+        }
+
+        var height = textRect.sizeDelta.y;
+        if (height < label.fontSize + 8f)
+        {
+            height = label.fontSize + 8f;
+        }
+
+        textRect.sizeDelta = new Vector2(width, height);
+
+        var canvasRect = ConsoleToolTip.GetComponent<RectTransform>();
+        if (canvasRect == null)
+        {
+            return;
+        }
+
+        var panel = textRect.parent as RectTransform;
+        var panelScaleX = panel != null ? panel.localScale.x : 1f;
+        var canvasWidth = ConsoleTipLayout.CanvasWidth(width, textRect.localScale.x, panelScaleX, canvasRect.sizeDelta.x);
+        canvasRect.sizeDelta = new Vector2(canvasWidth, canvasRect.sizeDelta.y);
     }
 
     protected virtual void ToggleTip(bool showing)

@@ -57,10 +57,22 @@ public class FlareLightingFixture
     [Test]
     public void HoldingTheThrowLengthensTheThrowUpToDouble()
     {
-        Assert.AreEqual(1f, FlareThrow.SpeedMultiplier(0f), 0.0001f);
-        Assert.AreEqual(1.5f, FlareThrow.SpeedMultiplier(0.5f), 0.0001f);
+        Assert.AreEqual(FlareThrow.MinDistanceMultiplier, FlareThrow.SpeedMultiplier(0f), 0.0001f);
+        Assert.Less(FlareThrow.SpeedMultiplier(0f), 0.4f);
         Assert.AreEqual(2f, FlareThrow.SpeedMultiplier(FlareThrow.FullChargeSeconds), 0.0001f);
         Assert.AreEqual(2f, FlareThrow.SpeedMultiplier(4f), 0.0001f);
+        Assert.AreEqual(0f, FlareThrow.ChargeFraction(0f), 0.0001f);
+        Assert.AreEqual(1f, FlareThrow.ChargeFraction(FlareThrow.FullChargeSeconds), 0.0001f);
+
+        var tap = FlareThrow.LandingPoint(new Vector3(0f, 1.2f, 0f), Vector3.forward, 9f * FlareThrow.SpeedMultiplier(0f), 0f, 9.81f);
+        var full = FlareThrow.LandingPoint(new Vector3(0f, 1.2f, 0f), Vector3.forward, 9f * FlareThrow.SpeedMultiplier(FlareThrow.FullChargeSeconds), 0f, 9.81f);
+        Assert.AreEqual(0f, tap.x, 0.001f);
+        Assert.Less(tap.z, 2f);
+        Assert.Greater(full.z, tap.z * 4f);
+        Assert.Less(tap.y, 0.2f);
+        var bar = ThrowPreview.BarScreenPosition(new Vector3(400f, 300f, 8f), 72f);
+        Assert.AreEqual(400f, bar.x, 0.001f);
+        Assert.AreEqual(228f, bar.y, 0.001f);
 
         var throwObject = new GameObject("throwable");
         throwObject.SetActive(false);

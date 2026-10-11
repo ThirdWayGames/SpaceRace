@@ -54,6 +54,8 @@ public abstract class BaseBullet<T> : SpawnedEntity<T>, IBullet where T : Bullet
         {
             ApplyForce(SpawnData);
         }
+
+        ShotEffects.Present(gameObject);
     }
 
     public virtual void ApplyForce(ISpawnData bulletData)

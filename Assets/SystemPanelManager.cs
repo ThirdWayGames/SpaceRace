@@ -15,18 +15,57 @@ public class SystemPanelManager : MonoBehaviour
 
     public void AlertSuccess(Button buttonClicked)
     {
-        var cb = buttonClicked.colors;
-        cb.normalColor = Color.green;
-        cb.highlightedColor = Color.green;
-        buttonClicked.colors = cb;
+        ApplyAlert(buttonClicked, SpaceRaceTheme.Success);
     }
 
     public void AlertFailure(Button buttonClicked)
     {
+        ApplyAlert(buttonClicked, SpaceRaceTheme.Failure);
+    }
+
+    static void ApplyAlert(Button buttonClicked, Color color)
+    {
+        if (buttonClicked == null)
+        {
+            return;
+        }
+
         var cb = buttonClicked.colors;
-        cb.normalColor = Color.red;
-        cb.highlightedColor = Color.red;
+        cb.normalColor = color;
+        cb.highlightedColor = Color.Lerp(color, Color.white, 0.28f);
+        cb.pressedColor = Color.Lerp(color, Color.black, 0.2f);
+        cb.disabledColor = color;
         buttonClicked.colors = cb;
+        SetStatusMark(buttonClicked, color);
+    }
+
+    static void SetStatusMark(Button button, Color color)
+    {
+        var mark = button.transform.Find("StatusMark");
+        Image image;
+        if (mark == null)
+        {
+            var go = new GameObject("StatusMark", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.transform.SetParent(button.transform, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(1f, 0.5f);
+            rect.anchorMax = new Vector2(1f, 0.5f);
+            rect.pivot = new Vector2(1f, 0.5f);
+            rect.anchoredPosition = new Vector2(-6f, 0f);
+            rect.sizeDelta = new Vector2(12f, 12f);
+            image = go.GetComponent<Image>();
+        }
+        else
+        {
+            image = mark.GetComponent<Image>();
+            mark.gameObject.SetActive(true);
+        }
+
+        if (image != null)
+        {
+            image.color = color;
+            image.raycastTarget = false;
+        }
     }
 
     public void AlertComplete()
@@ -40,9 +79,16 @@ public class SystemPanelManager : MonoBehaviour
         foreach (var systemButton in SystemButtons)
         {
             var cb = systemButton.colors;
-            cb.normalColor = Color.white;
-            cb.highlightedColor = Color.white;
+            cb.normalColor = SpaceRaceTheme.ButtonNormal;
+            cb.highlightedColor = SpaceRaceTheme.ButtonHighlight;
+            cb.pressedColor = SpaceRaceTheme.ButtonPressed;
+            cb.disabledColor = SpaceRaceTheme.ButtonDisabled;
             systemButton.colors = cb;
+            var mark = systemButton.transform.Find("StatusMark");
+            if (mark != null)
+            {
+                mark.gameObject.SetActive(false);
+            }
         }
     }
 
