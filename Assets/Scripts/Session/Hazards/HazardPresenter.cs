@@ -240,27 +240,38 @@ public class HazardPresenter : MonoBehaviour
 
     static Transform FindGreyboxSpawn()
     {
-        var greybox = GameObject.Find("ShipGreybox");
-        if (greybox == null)
+        var roots = new[]
         {
-            return null;
-        }
+            GameObject.Find("ShipInterior"),
+            GameObject.Find("ShipGreybox")
+        };
 
-        var children = greybox.GetComponentsInChildren<Transform>(true);
-        for (int i = 0; i < children.Length; i++)
+        for (int r = 0; r < roots.Length; r++)
         {
-            if (IsSpawnMarker(children[i].name))
+            if (roots[r] == null)
             {
-                return children[i];
+                continue;
             }
+
+            var children = roots[r].GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (IsSpawnMarker(children[i].name))
+                {
+                    return children[i];
+                }
+            }
+
+            return roots[r].transform;
         }
 
-        return greybox.transform;
+        return null;
     }
 
     static bool IsSpawnMarker(string name)
     {
-        return name == "Spawn"
+        return name == "SpawnPoint"
+            || name == "Spawn"
             || name == "PlayerSpawn"
             || name == "ShipSpawn"
             || name == "SpawnMarker"
