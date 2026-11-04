@@ -23,6 +23,10 @@ public class EscapeShipBootstrap : MonoBehaviour
         EnsurePlayerManager();
         AssignSpawns(manager, spawns);
         EnsureSceneCamera(interior.transform);
+        if (FindObjectOfType<ShipGreybox>() == null)
+        {
+            gameObject.AddComponent<ShipGreybox>();
+        }
     }
 
     public void Update()
