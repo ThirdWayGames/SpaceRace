@@ -21,7 +21,8 @@ public class LobbyManager : Photon.PunBehaviour
     {
         ShipBoardingPvp,
         SpaceStationPve,
-        BioWarsTest
+        BioWarsTest,
+        Escape
     }
 
     public SceneToLoadEnum SceneToLoad;
@@ -332,6 +333,8 @@ public class LobbyManager : Photon.PunBehaviour
                 return "SpaceStationPve";
             case SceneToLoadEnum.BioWarsTest:
                 return "BioWarsTest";
+            case SceneToLoadEnum.Escape:
+                return "Escape";
             default:
                 return "SpaceStationPve";
         }
