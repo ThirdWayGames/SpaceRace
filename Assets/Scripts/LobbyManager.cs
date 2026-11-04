@@ -17,6 +17,12 @@ public class LobbyManager : Photon.PunBehaviour
     public Canvas LobbyCanvas;
     public Canvas LoadingScreen;
 
+    Text waitingText;
+
+    GameObject howToPanel;
+
+    bool howToBuilt;
+
     public enum SceneToLoadEnum
     {
         ShipBoardingPvp,
@@ -28,6 +34,8 @@ public class LobbyManager : Photon.PunBehaviour
 
     public void Start()
     {
+        SetupLobbyPresentation();
+
         if (PhotonNetwork.room == null)
         {
             return;
@@ -299,11 +307,137 @@ public class LobbyManager : Photon.PunBehaviour
             }
         }
 
-        // Make sure the game object is active.
-        LaunchButton.gameObject.SetActive(PhotonNetwork.player.IsMasterClient);
+        var isMaster = PhotonNetwork.player != null && PhotonNetwork.player.IsMasterClient;
+        var playerCount = PhotonNetwork.playerList == null ? 0 : PhotonNetwork.playerList.Length;
+        var crewReady = AllPlayersReady();
+        var canLaunch = HostCanLaunch(isMaster, playerCount, crewReady);
 
-        // And the button is enabled.
-        LaunchButton.enabled = PhotonNetwork.player.IsMasterClient;
+        // Make sure the game object is active.
+        LaunchButton.gameObject.SetActive(isMaster);
+
+        // A solo host can launch immediately. A larger crew waits until everyone is ready.
+        LaunchButton.enabled = isMaster;
+        LaunchButton.interactable = canLaunch;
+
+        if (waitingText != null)
+        {
+            waitingText.gameObject.SetActive(isMaster && playerCount > 1 && !crewReady);
+        }
+    }
+
+    public static bool HostCanLaunch(bool isMaster, int playerCount, bool crewReady)
+    {
+        if (!isMaster)
+        {
+            return false;
+        }
+
+        return playerCount <= 1 || crewReady;
+    }
+
+    static bool AllPlayersReady()
+    {
+        if (PhotonNetwork.playerList == null || PhotonNetwork.playerList.Length == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < PhotonNetwork.playerList.Length; i++)
+        {
+            if (!PlayerReadyInfo.IsPlayerReady(PhotonNetwork.playerList[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    void SetupLobbyPresentation()
+    {
+        var keys = GameObject.Find("KeyBindings");
+        if (keys != null)
+        {
+            keys.SetActive(false);
+        }
+
+        var canvasObject = LobbyCanvas != null ? LobbyCanvas.gameObject : GameObject.Find("LobbyCanvas");
+        if (canvasObject == null)
+        {
+            return;
+        }
+
+        var canvas = canvasObject.transform;
+        var howToTransform = canvas.Find("HowToPlay");
+        var howTo = howToTransform != null
+            ? howToTransform.GetComponent<Button>()
+            : SpaceRaceWidgets.CreateButton(canvas, "HowToPlay", "How to play", ToggleHowToPlay);
+        PlaceCornerButton(howTo);
+
+        if (waitingText == null)
+        {
+            waitingText = SpaceRaceWidgets.CreateText(canvas, "WaitingForCrew", SpaceRaceCopy.WaitingForCrew, 16, SpaceRaceTheme.Orange, TextAnchor.MiddleCenter);
+        }
+
+        var waitRect = waitingText.rectTransform;
+        waitRect.anchorMin = new Vector2(0.18f, 0.9f);
+        waitRect.anchorMax = new Vector2(0.72f, 0.97f);
+        waitRect.offsetMin = Vector2.zero;
+        waitRect.offsetMax = Vector2.zero;
+        waitingText.gameObject.SetActive(false);
+
+        var objective = GameObject.Find("LocateText");
+        if (objective != null)
+        {
+            var objectiveText = objective.GetComponent<Text>();
+            if (objectiveText != null)
+            {
+                objectiveText.text = SpaceRaceCopy.WinCondition;
+            }
+        }
+    }
+
+    void ToggleHowToPlay()
+    {
+        if (!howToBuilt)
+        {
+            var canvasObject = LobbyCanvas != null ? LobbyCanvas.gameObject : GameObject.Find("LobbyCanvas");
+            if (canvasObject == null)
+            {
+                return;
+            }
+
+            var panel = SpaceRaceWidgets.CreateHowToCard(canvasObject.transform, ToggleHowToPlay);
+            panel.transform.SetAsLastSibling();
+            howToPanel = panel;
+            howToBuilt = true;
+            return;
+        }
+
+        if (howToPanel != null)
+        {
+            howToPanel.SetActive(!howToPanel.activeSelf);
+            if (howToPanel.activeSelf)
+            {
+                howToPanel.transform.SetAsLastSibling();
+            }
+        }
+    }
+
+    static void PlaceCornerButton(Button button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        var rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(1f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(1f, 1f);
+        rect.anchoredPosition = new Vector2(-16f, -16f);
+        rect.sizeDelta = new Vector2(168f, 36f);
+        button.transform.SetAsLastSibling();
     }
 
     [PunRPC]

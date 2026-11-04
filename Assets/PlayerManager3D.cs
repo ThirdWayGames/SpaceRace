@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using Assets.Scripts;
+using Assets.Scripts.Components;
 using Assets.Scripts.Interfaces;
 
 using UnityEngine;
@@ -66,6 +68,10 @@ public class PlayerManager3D : Photon.MonoBehaviour
     bool spawnFailed = false;
 
     bool spawnRpcSent = false;
+
+    Text[] respawnDigits;
+
+    string respawnReadout = string.Empty;
 
     public void SetLocalPlayer(GameObject localPlayer)
     {
@@ -268,9 +274,17 @@ public class PlayerManager3D : Photon.MonoBehaviour
                 spawnLoc.Spawned(playerController);
                 PlayerAlive = true;
             }
+
+            RestoreSpawnEnergy(player);
+            StartCoroutine(RestoreEnergyAfterSpawn(player));
         }
 
         LocalPlayerInstance = player;
+        var hud = FindObjectOfType<Assets.HudController>();
+        if (hud != null)
+        {
+            hud.SetObservedPlayer(player);
+        }
         spawnRequested = false;
         spawnRpcSent = false;
         if (player == null)
@@ -317,15 +331,64 @@ public class PlayerManager3D : Photon.MonoBehaviour
         }
     }
 
+    static void RestoreSpawnEnergy(GameObject player)
+    {
+        if (player == null)
+        {
+            return;
+        }
+
+        var energy = player.GetComponent<EnergyComponent>();
+        if (energy == null)
+        {
+            var view = player.GetComponent<PhotonView>();
+            if (view != null && PhotonNetwork.inRoom && !view.isMine)
+            {
+                return;
+            }
+
+            energy = player.AddComponent<EnergyComponent>();
+            energy.MaxValue = 100f;
+        }
+
+        energy.CurrentValue = SpawnVitals.RestoredEnergy(energy.CurrentValue, energy.MaxValue);
+    }
+
+    IEnumerator RestoreEnergyAfterSpawn(GameObject player)
+    {
+        yield return null;
+        RestoreSpawnEnergy(player);
+        if (player == null)
+        {
+            yield break;
+        }
+
+        var hud = FindObjectOfType<Assets.HudController>();
+        if (hud != null)
+        {
+            hud.SetObservedPlayer(player);
+        }
+    }
+
     protected void HideRespawnTimerFx()
     {
-        if (RespawnTimerText != null)
+        if (RespawnTimerText != null && RespawnTimerText.enabled)
         {
-            if (RespawnTimerText.enabled)
+            RespawnTimerText.enabled = false;
+        }
+
+        if (respawnDigits != null)
+        {
+            for (var i = 0; i < respawnDigits.Length; i++)
             {
-                RespawnTimerText.enabled = false;
+                if (respawnDigits[i] != null)
+                {
+                    respawnDigits[i].enabled = false;
+                }
             }
         }
+
+        respawnReadout = string.Empty;
     }
 
     protected void UpdateRespawnTimerFx()
@@ -336,11 +399,194 @@ public class PlayerManager3D : Photon.MonoBehaviour
             return;
         }
 
-        RespawnTimerText.text = string.Format("RESPAWING: {0:F}", Mathf.Clamp(CurrentRespawnTimer, 0, CurrentRespawnTimer));
+        EnsureRespawnReadout();
+        RespawnTimerText.text = SpaceRaceCopy.RespawnLabel;
         if (!RespawnTimerText.enabled)
         {
             RespawnTimerText.enabled = true;
         }
+
+        var formatted = SpaceRaceCopy.FormatRespawnCountdown(CurrentRespawnTimer);
+        if (formatted == respawnReadout)
+        {
+            return;
+        }
+
+        respawnReadout = formatted;
+        for (var i = 0; i < respawnDigits.Length; i++)
+        {
+            var digit = respawnDigits[i];
+            digit.enabled = true;
+            var character = formatted[i];
+            digit.text = i == 0 && character == '0' ? string.Empty : character.ToString();
+        }
+    }
+
+    void EnsureRespawnReadout()
+    {
+        if (respawnDigits != null || RespawnTimerText == null)
+        {
+            return;
+        }
+
+        var label = RespawnTimerText;
+        var labelRect = label.rectTransform;
+        var available = labelRect.rect.width;
+        var parent = labelRect.parent as RectTransform;
+        if (parent != null && parent.rect.width > available)
+        {
+            available = parent.rect.width;
+        }
+
+        if (available < 1f)
+        {
+            available = Screen.width;
+        }
+
+        var fontSize = label.fontSize > 0 ? label.fontSize : 110;
+        var gap = 16f;
+        var labelWidth = TextAdvance(label.font, fontSize, label.fontStyle, SpaceRaceCopy.RespawnLabel);
+        var digitWidth = CharacterAdvance(label.font, fontSize, label.fontStyle, '0');
+        var dotWidth = CharacterAdvance(label.font, fontSize, label.fontStyle, '.');
+        if (dotWidth < digitWidth * 0.2f)
+        {
+            dotWidth = digitWidth * 0.35f;
+        }
+
+        float[] widths = { digitWidth, digitWidth, dotWidth, digitWidth, digitWidth };
+        var total = 0f;
+        for (var i = 0; i < widths.Length; i++)
+        {
+            total += widths[i];
+        }
+
+        var fitted = SpaceRaceCopy.FitRespawnFontSize(fontSize, labelWidth + gap + total, available, 48f);
+        if (fitted != fontSize && fontSize > 0)
+        {
+            var scale = fitted / (float)fontSize;
+            fontSize = fitted;
+            labelWidth *= scale;
+            total = 0f;
+            for (var i = 0; i < widths.Length; i++)
+            {
+                widths[i] *= scale;
+                total += widths[i];
+            }
+        }
+
+        float labelRight;
+        float digitsLeft;
+        SpaceRaceCopy.CenterRespawnReadout(labelWidth, total, gap, out labelRight, out digitsLeft);
+
+        labelRect.anchorMin = new Vector2(0.5f, 0.5f);
+        labelRect.anchorMax = new Vector2(0.5f, 0.5f);
+        labelRect.pivot = new Vector2(1f, 0.5f);
+        labelRect.anchoredPosition = new Vector2(labelRight, 0f);
+        labelRect.sizeDelta = new Vector2(labelWidth, fontSize * 1.4f);
+        label.fontSize = fontSize;
+        label.alignment = TextAnchor.MiddleRight;
+        label.horizontalOverflow = HorizontalWrapMode.Overflow;
+        label.verticalOverflow = VerticalWrapMode.Overflow;
+        label.text = SpaceRaceCopy.RespawnLabel;
+
+        var row = new GameObject("RespawnTimerValue");
+        row.transform.SetParent(label.transform.parent, false);
+        var rowRect = row.AddComponent<RectTransform>();
+        rowRect.anchorMin = new Vector2(0.5f, 0.5f);
+        rowRect.anchorMax = new Vector2(0.5f, 0.5f);
+        rowRect.pivot = new Vector2(0f, 0.5f);
+        rowRect.anchoredPosition = new Vector2(digitsLeft, 0f);
+        rowRect.sizeDelta = new Vector2(total, fontSize * 1.4f);
+
+        respawnDigits = new Text[widths.Length];
+        var x = 0f;
+        for (var i = 0; i < widths.Length; i++)
+        {
+            var digitObject = new GameObject("Digit" + i);
+            digitObject.transform.SetParent(row.transform, false);
+            var digitRect = digitObject.AddComponent<RectTransform>();
+            digitRect.anchorMin = new Vector2(0f, 0f);
+            digitRect.anchorMax = new Vector2(0f, 1f);
+            digitRect.pivot = new Vector2(0.5f, 0.5f);
+            digitRect.anchoredPosition = new Vector2(x + widths[i] * 0.5f, 0f);
+            digitRect.sizeDelta = new Vector2(widths[i], 0f);
+
+            var digit = digitObject.AddComponent<Text>();
+            digit.font = label.font;
+            digit.fontSize = fontSize;
+            digit.fontStyle = label.fontStyle;
+            digit.color = label.color;
+            digit.alignment = TextAnchor.MiddleCenter;
+            digit.horizontalOverflow = HorizontalWrapMode.Overflow;
+            digit.verticalOverflow = VerticalWrapMode.Overflow;
+            digit.raycastTarget = false;
+            digit.enabled = false;
+            respawnDigits[i] = digit;
+            x += widths[i];
+        }
+    }
+
+    static float TextAdvance(Font font, int size, FontStyle style, string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return 0f;
+        }
+
+        if (font == null)
+        {
+            return size * 0.62f * value.Length;
+        }
+
+        font.RequestCharactersInTexture(value, size, style);
+        var total = 0f;
+        for (var i = 0; i < value.Length; i++)
+        {
+            CharacterInfo info;
+            if (font.GetCharacterInfo(value[i], out info, size, style) && info.advance > 1f)
+            {
+                total += info.advance;
+            }
+            else
+            {
+                total += size * 0.62f;
+            }
+        }
+
+        return total;
+    }
+
+    static float CharacterAdvance(Font font, int size, FontStyle style, char character)
+    {
+        var fallback = character == '.' ? size * 0.28f : size * 0.62f;
+        if (font == null)
+        {
+            return fallback;
+        }
+
+        font.RequestCharactersInTexture("0123456789.", size, style);
+        CharacterInfo info;
+        if (!font.GetCharacterInfo(character == '.' ? '.' : '0', out info, size, style))
+        {
+            return fallback;
+        }
+
+        if (character == '.')
+        {
+            return info.advance > 1f ? info.advance : fallback;
+        }
+
+        var widest = info.advance;
+        for (var c = '0'; c <= '9'; c++)
+        {
+            CharacterInfo digitInfo;
+            if (font.GetCharacterInfo(c, out digitInfo, size, style) && digitInfo.advance > widest)
+            {
+                widest = digitInfo.advance;
+            }
+        }
+
+        return widest > 1f ? widest : fallback;
     }
 
     void OnGUI()

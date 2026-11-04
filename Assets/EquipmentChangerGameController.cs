@@ -22,6 +22,15 @@ public class EquipmentChangerGameController : MonoBehaviour, IConsoleSceneContro
 
     private IConsole CurrentConsole { get; set; }
 
+    public void Start()
+    {
+        AddHandButton("LeftThrowable", "LeftGrenade", true, "Grenade");
+        AddHandButton("LeftThrowable", "LeftSniperRifle", true, "SniperRifle");
+        AddHandButton("RightHeavyBlaster", "RightThrowable", false, "Throwable");
+        AddHandButton("RightHeavyBlaster", "RightGrenade", false, "Grenade");
+        AddHandButton("RightHeavyBlaster", "RightSniperRifle", false, "SniperRifle");
+    }
+
     public void Update()
     {
         if (UiCanvas != null && ClientEquipmentLoadout != null)
@@ -33,10 +42,18 @@ public class EquipmentChangerGameController : MonoBehaviour, IConsoleSceneContro
                 {
                     ProcessEquipmentButtons(equimentLoadout.LeftHandEquipment, "Left");
                 }
+                else
+                {
+                    ResetHandButtons("Left");
+                }
 
                 if (equimentLoadout.RightHandEquipment != null)
                 {
                     ProcessEquipmentButtons(equimentLoadout.RightHandEquipment, "Right");
+                }
+                else
+                {
+                    ResetHandButtons("Right");
                 }
             }
         }
@@ -102,6 +119,7 @@ public class EquipmentChangerGameController : MonoBehaviour, IConsoleSceneContro
             }
 
             equipmentLoadout.LeftHandEquipment = resourceGo;
+            ClaimBothHands(equipmentLoadout, resourceGo, true);
         }
     }
 
@@ -149,7 +167,92 @@ public class EquipmentChangerGameController : MonoBehaviour, IConsoleSceneContro
             }
 
             equipmentLoadout.RightHandEquipment = resourceGo;
+            ClaimBothHands(equipmentLoadout, resourceGo, false);
         }
+    }
+
+    static void ClaimBothHands(EquipmentLoadout loadout, GameObject chosen, bool assignedLeft)
+    {
+        var weapon = chosen.GetComponent<Weapon>();
+        var both = (weapon != null && weapon.OccupiesBothHands) || LoadoutHands.OccupiesBothHands(chosen.name);
+        if (both)
+        {
+            if (assignedLeft)
+            {
+                loadout.RightHandEquipment = null;
+            }
+            else
+            {
+                loadout.LeftHandEquipment = null;
+            }
+
+            return;
+        }
+
+        var other = assignedLeft ? loadout.RightHandEquipment : loadout.LeftHandEquipment;
+        if (other == null)
+        {
+            return;
+        }
+
+        var otherWeapon = other.GetComponent<Weapon>();
+        if ((otherWeapon != null && otherWeapon.OccupiesBothHands) || LoadoutHands.OccupiesBothHands(other.name))
+        {
+            if (assignedLeft)
+            {
+                loadout.RightHandEquipment = null;
+            }
+            else
+            {
+                loadout.LeftHandEquipment = null;
+            }
+        }
+    }
+
+    void AddHandButton(string templateName, string buttonName, bool leftHand, string resource)
+    {
+        if (GameObject.Find(buttonName) != null)
+        {
+            return;
+        }
+
+        var template = GameObject.Find(templateName);
+        if (template == null)
+        {
+            return;
+        }
+
+        var buttonObject = new GameObject(buttonName);
+        buttonObject.transform.SetParent(template.transform.parent, false);
+        var image = buttonObject.AddComponent<Image>();
+        image.preserveAspect = true;
+        image.sprite = Resources.Load<Sprite>("HandIcons/" + HandIcons.CatalogKey(resource));
+        var templateRect = template.GetComponent<RectTransform>();
+        if (templateRect != null)
+        {
+            var rect = image.rectTransform;
+            rect.anchorMin = templateRect.anchorMin;
+            rect.anchorMax = templateRect.anchorMax;
+            rect.pivot = templateRect.pivot;
+            rect.sizeDelta = templateRect.sizeDelta;
+            rect.localScale = Vector3.one;
+        }
+
+        var button = buttonObject.AddComponent<Button>();
+        button.targetGraphic = image;
+        var capturedLeft = leftHand;
+        var capturedResource = resource;
+        button.onClick.AddListener(() =>
+        {
+            if (capturedLeft)
+            {
+                SetLeftEquipment(capturedResource);
+            }
+            else
+            {
+                SetRightEquipment(capturedResource);
+            }
+        });
     }
 
     public void QuitConsole()
@@ -201,6 +304,24 @@ public class EquipmentChangerGameController : MonoBehaviour, IConsoleSceneContro
             currentButton.colors = buttonStyle;
         }
 
+    }
+
+    void ResetHandButtons(string side)
+    {
+        if (UiCanvas == null)
+        {
+            return;
+        }
+
+        var buttons = UiCanvas.GetComponentsInChildren<Button>();
+        foreach (var currentButton in buttons.Where(x => x.name.StartsWith(side)))
+        {
+            var buttonStyle = currentButton.colors;
+            buttonStyle.normalColor = new Color(255, 255, 255, 255);
+            buttonStyle.highlightedColor = new Color(245, 245, 245, 255);
+            buttonStyle.pressedColor = new Color(200, 200, 200, 255);
+            currentButton.colors = buttonStyle;
+        }
     }
 
     public void InitaliseMiniGame(IConsole currentConsole)

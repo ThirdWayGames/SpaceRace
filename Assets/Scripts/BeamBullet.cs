@@ -119,9 +119,9 @@ public class BeamBullet : BaseBullet<BulletData>
                             transform.parent = parent.transform;
                         }
 
-                        // reset the position and rotation of the item relative to the parent.
                         transform.localPosition = Vector3.zero;
-                        transform.localRotation = Quaternion.identity;
+                        var aimed = SpawnData as BulletData;
+                        transform.localRotation = ShotAim.BeamLocalRotation(aimed != null ? aimed.AimYaw : 0f);
                     }
                 }
                 else

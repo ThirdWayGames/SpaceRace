@@ -163,6 +163,21 @@ namespace Assets.Scripts.GameObjects
             get { return false; }
         }
 
+        public virtual bool OccupiesBothHands
+        {
+            get { return false; }
+        }
+
+        public virtual float ThrowChargeSeconds
+        {
+            get { return 0f; }
+        }
+
+        public virtual float ThrowSpeed
+        {
+            get { return BulletVelocity; }
+        }
+
         public virtual bool IsThrowCharging
         {
             get { return false; }
@@ -178,6 +193,19 @@ namespace Assets.Scripts.GameObjects
 
         public virtual void ClearThrowCharge()
         {
+        }
+
+        /// <summary>
+        /// A charged throw leaves the hand when the fire button is released, including a short tap.
+        /// </summary>
+        public virtual GameObject ReleaseChargedThrow(IPlayerController player, bool isRunning)
+        {
+            if (FireTimer < FireDelay)
+            {
+                FireTimer = FireDelay;
+            }
+
+            return Fire(player, isRunning, Time.deltaTime);
         }
 
         /// <summary>
@@ -205,8 +233,6 @@ namespace Assets.Scripts.GameObjects
                         // reset the fire timer.
                         FireTimer = 0f;
 
-                        // If we are running make the bullet less accurate by applying wider bullet spread.
-                        Debug.Log(string.Format("Locating 'Muzzle' for {0} child of {1}", this.gameObject.transform.name, this.gameObject.transform.parent != null ? this.gameObject.transform.parent.name : "No Parent"));
                         var gunPort = this.gameObject.transform.Find("Muzzle");
                         if (gunPort == null)
                         {
@@ -262,9 +288,6 @@ namespace Assets.Scripts.GameObjects
                 // If we are firing the beam and there is not one already.
                 if (isActive)
                 {
-                    // If we are running make the bullet less accurate by applying wider bullet spread.
-                    Debug.Log(string.Format("Locating 'Muzzle' for {0} child of {1}", this.gameObject.transform.name, this.gameObject.transform.parent != null ? this.gameObject.transform.parent.name : "No Parent"));
-
                     var gunPort = this.gameObject.transform.Find("Muzzle");
                     if (gunPort == null)
                     {
@@ -290,8 +313,11 @@ namespace Assets.Scripts.GameObjects
 
                             if (CurrentBeam == null)
                             {
-                                CurrentBeam = SpawnBullet(player, gunPort.position, gunPort.transform.rotation);
+                                var rot = ApplyBulletSpread(player, gunPort);
+                                CurrentBeam = SpawnBullet(player, gunPort.position, Quaternion.Euler(rot));
                             }
+
+                            AimBeamAtCursor(gunPort);
                         }
 
                         // Reduce ammo by 1;
@@ -373,13 +399,21 @@ namespace Assets.Scripts.GameObjects
         [PunRPC]
         public virtual void PlayFireSound()
         {
-            if (!Reloading)
+            if (Reloading)
             {
-                var audioSource = GetAudioPlayer();
-                if (audioSource != null && FireEffect != null)
-                {
-                    audioSource.PlayOneShot(FireEffect);
-                }
+                return;
+            }
+
+            var audioSource = GetAudioPlayer();
+            if (audioSource != null && FireEffect != null)
+            {
+                audioSource.PlayOneShot(FireEffect);
+            }
+
+            var muzzle = transform.Find("Muzzle");
+            if (muzzle != null)
+            {
+                ShotEffects.Flash(muzzle.position, muzzle.forward, gameObject.name);
             }
         }
 
@@ -432,6 +466,18 @@ namespace Assets.Scripts.GameObjects
         /// <returns>
         /// The spawn rotation for the bullet, deviated ramdomly between Min and Max bullet deviation.
         /// </returns>
+        protected virtual void AimBeamAtCursor(Transform muzzle)
+        {
+            if (CurrentBeam == null || muzzle == null || IsAIBullet)
+            {
+                return;
+            }
+
+            var fallback = muzzle.forward;
+            var direction = ShotAim.Direction(muzzle.position, ShotAim.CursorPoint(muzzle.position, fallback), fallback);
+            CurrentBeam.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        }
+
         protected virtual Vector3 ApplyBulletSpread(IPlayerController player, Transform gunPortPos)
         {
             // Calcuate the current deviation based amount of focus and the min and max deviation.
@@ -452,33 +498,24 @@ namespace Assets.Scripts.GameObjects
                 }
             }
 
-            // Get the current spawn position
-            var rot = gunPortPos.rotation.eulerAngles;
-
-            if (AimAtMouseCentre)
+            Quaternion aimRotation;
+            if (!IsAIBullet)
             {
-                // Get the mouse position
-                var bulletSpawnPos = Camera.main.WorldToScreenPoint(gunPortPos.localPosition);
-                var mousePos = Input.mousePosition;
-
-                // calculate the mouse Position in relation to object positon.
-                mousePos.x = mousePos.x - bulletSpawnPos.x;
-                mousePos.y = mousePos.y - bulletSpawnPos.y;
-
-                // Calculate the amount of rotation required to make the object face toward the mouse pointer.
-                var mousePointerAngle = Mathf.Atan2(mousePos.y, mousePos.x) * Mathf.Rad2Deg;
-                var angleToMousePointerCentre = mousePointerAngle - 90;
-
-                // Clamp the angle of mouse pointer deviation to 15 degrees.
-                rot = new Vector3(0, 0, angleToMousePointerCentre);
+                var fallback = gunPortPos.forward;
+                var cursor = ShotAim.CursorPoint(gunPortPos.position, fallback);
+                var direction = ShotAim.Direction(gunPortPos.position, cursor, fallback);
+                aimRotation = Quaternion.LookRotation(direction, Vector3.up);
+            }
+            else
+            {
+                aimRotation = gunPortPos.rotation;
             }
 
-            // Apply the deviation.
-            rot.x = Random.Range(rot.x - currentDeviation, rot.x + currentDeviation);
-            rot.y = Random.Range(rot.y - currentDeviation, rot.y + currentDeviation);
-
-            // return the deviated rotation.
-            return rot;
+            var spread = Quaternion.Euler(
+                Random.Range(-currentDeviation, currentDeviation),
+                Random.Range(-currentDeviation, currentDeviation),
+                0f);
+            return (aimRotation * spread).eulerAngles;
         }
 
         /// <summary>
@@ -498,6 +535,15 @@ namespace Assets.Scripts.GameObjects
             if (selectedBulletToSpawn != null)
             {
                 var data = GenerateSpawnData(player);
+                var bulletData = data as BulletData;
+                if (bulletData != null)
+                {
+                    var muzzle = transform.Find("Muzzle");
+                    var shotForward = rotation * Vector3.forward;
+                    var muzzleForward = muzzle != null ? muzzle.forward : shotForward;
+                    bulletData.AimYaw = ShotAim.YawOffset(muzzleForward, shotForward);
+                }
+
                 var array = data.ToOjectArray();
 
                 // If we are in a network game.
@@ -514,7 +560,7 @@ namespace Assets.Scripts.GameObjects
 
                     // If we are not in a network game.
                     spawnedBullet = Instantiate(selectedBulletToSpawn, position, rotation);
-                    spawnedBullet.GetComponent<IBullet>().SetSpawnData(GenerateSpawnData(player));
+                    spawnedBullet.GetComponent<IBullet>().SetSpawnData(data);
                     /*var bulletComp = spawnedBullet.GetComponent<IBullet>();
                     if (bulletComp != null)
                     {

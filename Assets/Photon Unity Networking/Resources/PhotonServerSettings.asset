@@ -66,4 +66,8 @@ MonoBehaviour:
   - RemoveImmunity
   - DestroyLocalEntity
   - SpawnEntity
+  - RequestSpawnPoint
+  - RequestTeamAssignment
+  - SpawnPointDenied
+  - SpawnPointGranted
   DisableAutoOpenWizard: 1

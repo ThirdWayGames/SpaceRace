@@ -7,5 +7,7 @@
         public float BulletLifetime;
 
         public int ShooterId;
+
+        public float AimYaw;
     }
 }

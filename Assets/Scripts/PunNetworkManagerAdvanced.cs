@@ -86,7 +86,7 @@ public class PunNetworkManagerAdvanced : PunNetworkManager, IPunNetworkManager
     {
         if (ProgressLabel != null)
         {
-            ProgressLabel.GetComponent<Text>().text = PhotonNetwork.connectionStateDetailed.ToString();
+            ProgressLabel.GetComponent<Text>().text = SpaceRaceCopy.ConnectionStatus(PhotonNetwork.connectionStateDetailed.ToString());
         }
     }
 
