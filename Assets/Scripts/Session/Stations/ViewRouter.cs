@@ -24,6 +24,11 @@ public class ViewRouter : MonoBehaviour
             }
         }
 
+        if (Camera.main != null)
+        {
+            StripGalaxyLayer(Camera.main);
+        }
+
         var board = StationBoard.FindBoard();
         var stationId = board == null ? string.Empty : board.Occupancy.StationFor(StationBoard.LocalActorId());
         if (stationId == engagedStation && engagedPlayer != null)
@@ -163,6 +168,18 @@ public class ViewRouter : MonoBehaviour
             if (listeners[i].enabled)
             {
                 playerListeners.Add(listeners[i]);
+            }
+        }
+
+        var sceneCamera = Camera.main;
+        if (sceneCamera != null && sceneCamera.enabled && !playerCameras.Contains(sceneCamera))
+        {
+            playerCameras.Add(sceneCamera);
+            StripGalaxyLayer(sceneCamera);
+            var sceneListener = sceneCamera.GetComponent<AudioListener>();
+            if (sceneListener != null && sceneListener.enabled && !playerListeners.Contains(sceneListener))
+            {
+                playerListeners.Add(sceneListener);
             }
         }
     }
