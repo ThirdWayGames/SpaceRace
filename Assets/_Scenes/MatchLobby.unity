@@ -3947,7 +3947,7 @@ MonoBehaviour:
   ArenaName: {fileID: 0}
   LobbyCanvas: {fileID: 117726200}
   LoadingScreen: {fileID: 2053955099}
-  SceneToLoad: 2
+  SceneToLoad: 3
 --- !u!4 &1872120128
 Transform:
   m_ObjectHideFlags: 0

@@ -65,4 +65,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Scenes/MiniGames/RadiationBuild.unity
     guid: 901e1aab16d34ff46b62e112f0787d1a
+  - enabled: 1
+    path: Assets/_Scenes/Escape/Escape.unity
+    guid: 4915bd50937e4394a0c1984038e044ae
   m_configObjects: {}
