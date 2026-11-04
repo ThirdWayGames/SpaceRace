@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [DefaultExecutionOrder(-50)]
@@ -42,6 +43,11 @@ public class EscapeShipBootstrap : MonoBehaviour
             return;
         }
 
+        if (!ShouldReleaseSceneCamera(playerManager.LocalPlayerInstance))
+        {
+            return;
+        }
+
         sceneCamera.enabled = false;
         if (sceneListener != null)
         {
@@ -49,6 +55,30 @@ public class EscapeShipBootstrap : MonoBehaviour
         }
 
         cameraReleased = true;
+    }
+
+    public void ConfigureOnFootView()
+    {
+        EnsureSceneCamera(transform);
+    }
+
+    public static bool ShouldReleaseSceneCamera(GameObject player)
+    {
+        if (player == null)
+        {
+            return false;
+        }
+
+        var cameras = player.GetComponentsInChildren<Camera>(true);
+        for (int i = 0; i < cameras.Length; i++)
+        {
+            if (cameras[i] != null && cameras[i].enabled)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     static GameObject BuildInterior()
@@ -61,7 +91,14 @@ public class EscapeShipBootstrap : MonoBehaviour
 
         var root = new GameObject(InteriorName);
         CreateBox(root.transform, "Floor", new Vector3(0f, 0f, 0f), new Vector3(14f, 0.2f, 14f), new Color(0.22f, 0.24f, 0.28f));
-        CreateBox(root.transform, "Ceiling", new Vector3(0f, 3f, 0f), new Vector3(14f, 0.2f, 14f), new Color(0.16f, 0.17f, 0.2f));
+        var ceiling = CreateBox(root.transform, "Ceiling", new Vector3(0f, 3f, 0f), new Vector3(14f, 0.2f, 14f), new Color(0.16f, 0.17f, 0.2f));
+        var ceilingRenderer = ceiling.GetComponent<Renderer>();
+        if (ceilingRenderer != null)
+        {
+            ceilingRenderer.enabled = false;
+        }
+
+        CreateInteriorLight(root.transform);
         CreateBox(root.transform, "WallNorth", new Vector3(0f, 1.5f, 7f), new Vector3(14f, 3f, 0.2f), new Color(0.28f, 0.32f, 0.36f));
         CreateBox(root.transform, "WallSouth", new Vector3(0f, 1.5f, -7f), new Vector3(14f, 3f, 0.2f), new Color(0.28f, 0.32f, 0.36f));
         CreateBox(root.transform, "WallEast", new Vector3(7f, 1.5f, 0f), new Vector3(0.2f, 3f, 14f), new Color(0.28f, 0.32f, 0.36f));
@@ -170,15 +207,52 @@ public class EscapeShipBootstrap : MonoBehaviour
             sceneListener = gameObject.AddComponent<AudioListener>();
         }
 
-        transform.position = interior.position + new Vector3(0f, 1.6f, -4f);
-        transform.rotation = Quaternion.identity;
+        gameObject.tag = "MainCamera";
+        transform.position = interior.position + new Vector3(0f, 8f, -6f);
+        transform.rotation = Quaternion.Euler(50f, 0f, 0f);
         sceneCamera.clearFlags = CameraClearFlags.SolidColor;
         sceneCamera.backgroundColor = new Color(0.05f, 0.06f, 0.08f);
         sceneCamera.nearClipPlane = 0.05f;
-        sceneCamera.farClipPlane = 40f;
+        sceneCamera.farClipPlane = 80f;
+        sceneCamera.depth = 0f;
+        sceneCamera.targetDisplay = 0;
+        sceneCamera.targetTexture = null;
+        var galaxyLayer = LayerMask.NameToLayer("GalaxyView");
+        if (galaxyLayer >= 0)
+        {
+            sceneCamera.cullingMask &= ~(1 << galaxyLayer);
+        }
+
+        var follow = GetComponent<CameraFollow3D>();
+        if (follow == null)
+        {
+            follow = gameObject.AddComponent<CameraFollow3D>();
+        }
+
+        follow.camTranform = transform;
+        follow.LightsToCull = new List<Light>();
+        follow.ClampCamY = true;
+        follow.FixedCamera = true;
+        follow.Y_ANGLE_MIN = 50f;
+        follow.Y_ANGLE_MAX = 70f;
+        follow.ZOOM_MIN = 6f;
+        follow.ZOOM_MAX = 16f;
+        follow.CameraXYOffset = new Vector3(0f, 0f, 12f);
     }
 
-    static void CreateBox(Transform parent, string name, Vector3 localPosition, Vector3 scale, Color color)
+    static void CreateInteriorLight(Transform parent)
+    {
+        var lightObject = new GameObject("InteriorLight");
+        lightObject.transform.SetParent(parent, false);
+        lightObject.transform.localPosition = new Vector3(0f, 2.4f, 0f);
+        var light = lightObject.AddComponent<Light>();
+        light.type = LightType.Point;
+        light.range = 24f;
+        light.intensity = 1.5f;
+        light.color = new Color(0.85f, 0.9f, 1f);
+    }
+
+    static GameObject CreateBox(Transform parent, string name, Vector3 localPosition, Vector3 scale, Color color)
     {
         var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.name = name;
@@ -190,5 +264,7 @@ public class EscapeShipBootstrap : MonoBehaviour
         {
             renderer.material.color = color;
         }
+
+        return cube;
     }
 }
