@@ -6,7 +6,13 @@ public class GalaxyProxy : MonoBehaviour
 {
     public const float ProxyHeight = 5000f;
 
+    public const string LightName = "GalaxyLight";
+
+    public const float LightIntensity = 1.25f;
+
     Transform root;
+
+    Light galaxyLight;
 
     Transform storm;
 
@@ -20,6 +26,7 @@ public class GalaxyProxy : MonoBehaviour
     {
         root = new GameObject("GalaxyProxyRoot").transform;
         root.position = new Vector3(0f, ProxyHeight, 0f);
+        galaxyLight = CreateGalaxyLight(root);
         storm = CreatePrimitive(PrimitiveType.Cylinder, "Storm", new Color(0.35f, 0.15f, 0.45f, 0.35f));
         ship = CreatePrimitive(PrimitiveType.Cube, "Ship", new Color(0.8f, 0.84f, 0.9f));
         var map = GalaxyMap.CreateSample();
@@ -55,6 +62,39 @@ public class GalaxyProxy : MonoBehaviour
         ship.localScale = new Vector3(6f, 2f, 10f);
         UpdateContacts(snapshot.ContactSummary);
         AimStationCameras(ship.position, snapshot.HeadingDegrees);
+        AimGalaxyLight(snapshot.HeadingDegrees);
+    }
+
+    public static Light CreateGalaxyLight(Transform parent)
+    {
+        var lightObject = new GameObject(LightName);
+        lightObject.transform.SetParent(parent, false);
+        var light = lightObject.AddComponent<Light>();
+        light.type = LightType.Directional;
+        light.intensity = LightIntensity;
+        light.color = new Color(0.92f, 0.95f, 1f);
+        light.shadows = LightShadows.None;
+        light.renderMode = LightRenderMode.ForcePixel;
+        var layer = LayerMask.NameToLayer("GalaxyView");
+        light.cullingMask = layer < 0 ? ~0 : 1 << layer;
+        light.transform.rotation = LightRotation(0f);
+        return light;
+    }
+
+    public static Quaternion LightRotation(float headingDegrees)
+    {
+        var forward = Quaternion.Euler(0f, headingDegrees, 0f) * Vector3.forward;
+        return Quaternion.LookRotation((forward * 0.35f) + Vector3.down);
+    }
+
+    void AimGalaxyLight(float headingDegrees)
+    {
+        if (galaxyLight == null)
+        {
+            return;
+        }
+
+        galaxyLight.transform.rotation = LightRotation(headingDegrees);
     }
 
     void UpdateContacts(string summary)
@@ -135,7 +175,14 @@ public class GalaxyProxy : MonoBehaviour
         var collider = primitive.GetComponent<Collider>();
         if (collider != null)
         {
-            Destroy(collider);
+            if (Application.isPlaying)
+            {
+                Destroy(collider);
+            }
+            else
+            {
+                DestroyImmediate(collider);
+            }
         }
 
         var renderer = primitive.GetComponent<Renderer>();
