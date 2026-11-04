@@ -1,0 +1,194 @@
+using UnityEngine;
+
+[DefaultExecutionOrder(-50)]
+public class EscapeShipBootstrap : MonoBehaviour
+{
+    public const string InteriorName = "ShipInterior";
+
+    public const string SpawnPointName = "SpawnPoint";
+
+    const int SceneViewId = 1;
+
+    bool cameraReleased;
+
+    Camera sceneCamera;
+
+    AudioListener sceneListener;
+
+    public void Awake()
+    {
+        var interior = BuildInterior();
+        var spawns = CreateSpawns(interior.transform);
+        var manager = EnsureGameManager();
+        EnsurePlayerManager();
+        AssignSpawns(manager, spawns);
+        EnsureSceneCamera(interior.transform);
+        if (FindObjectOfType<ShipGreybox>() == null)
+        {
+            gameObject.AddComponent<ShipGreybox>();
+        }
+    }
+
+    public void Update()
+    {
+        if (cameraReleased || sceneCamera == null)
+        {
+            return;
+        }
+
+        var playerManager = FindObjectOfType<PlayerManager3D>();
+        if (playerManager == null || playerManager.LocalPlayerInstance == null)
+        {
+            return;
+        }
+
+        sceneCamera.enabled = false;
+        if (sceneListener != null)
+        {
+            sceneListener.enabled = false;
+        }
+
+        cameraReleased = true;
+    }
+
+    static GameObject BuildInterior()
+    {
+        var existing = GameObject.Find(InteriorName);
+        if (existing != null)
+        {
+            return existing;
+        }
+
+        var root = new GameObject(InteriorName);
+        CreateBox(root.transform, "Floor", new Vector3(0f, 0f, 0f), new Vector3(14f, 0.2f, 14f), new Color(0.22f, 0.24f, 0.28f));
+        CreateBox(root.transform, "Ceiling", new Vector3(0f, 3f, 0f), new Vector3(14f, 0.2f, 14f), new Color(0.16f, 0.17f, 0.2f));
+        CreateBox(root.transform, "WallNorth", new Vector3(0f, 1.5f, 7f), new Vector3(14f, 3f, 0.2f), new Color(0.28f, 0.32f, 0.36f));
+        CreateBox(root.transform, "WallSouth", new Vector3(0f, 1.5f, -7f), new Vector3(14f, 3f, 0.2f), new Color(0.28f, 0.32f, 0.36f));
+        CreateBox(root.transform, "WallEast", new Vector3(7f, 1.5f, 0f), new Vector3(0.2f, 3f, 14f), new Color(0.28f, 0.32f, 0.36f));
+        CreateBox(root.transform, "WallWest", new Vector3(-7f, 1.5f, 0f), new Vector3(0.2f, 3f, 14f), new Color(0.28f, 0.32f, 0.36f));
+        return root;
+    }
+
+    static TeleportController[] CreateSpawns(Transform interior)
+    {
+        var red = CreateSpawn(interior, SpawnPointName, new Vector3(0f, 1f, 0f), 1);
+        var blue = CreateSpawn(interior, "SpawnPointBlue", new Vector3(1.5f, 1f, 0f), 2);
+        return new[] { red, blue };
+    }
+
+    static TeleportController CreateSpawn(Transform interior, string name, Vector3 localPosition, int teamId)
+    {
+        var existing = interior.Find(name);
+        GameObject spawnObject;
+        if (existing != null)
+        {
+            spawnObject = existing.gameObject;
+        }
+        else
+        {
+            spawnObject = new GameObject(name);
+            spawnObject.transform.SetParent(interior, false);
+            spawnObject.transform.localPosition = localPosition;
+            spawnObject.transform.localRotation = Quaternion.identity;
+        }
+
+        var teleport = spawnObject.GetComponent<TeleportController>();
+        if (teleport == null)
+        {
+            teleport = spawnObject.AddComponent<TeleportController>();
+        }
+
+        teleport.TeamId = teamId;
+        teleport.RechargeTime = 0f;
+        return teleport;
+    }
+
+    static GameManager3D EnsureGameManager()
+    {
+        var existing = FindObjectOfType<GameManager3D>();
+        if (existing != null)
+        {
+            EnsureSceneView(existing.gameObject);
+            return existing;
+        }
+
+        var prefab = Resources.Load<GameObject>("GameManager");
+        if (prefab == null)
+        {
+            Debug.LogError("EscapeShipBootstrap could not load the GameManager prefab.");
+            return null;
+        }
+
+        var instance = Instantiate(prefab);
+        instance.name = "GameManager";
+        EnsureSceneView(instance);
+        return instance.GetComponent<GameManager3D>();
+    }
+
+    static void EnsureSceneView(GameObject managerObject)
+    {
+        var view = managerObject.GetComponent<PhotonView>();
+        if (view != null && view.viewID == 0)
+        {
+            view.viewID = SceneViewId;
+        }
+    }
+
+    static void EnsurePlayerManager()
+    {
+        if (FindObjectOfType<PlayerManager3D>() != null)
+        {
+            return;
+        }
+
+        var playerManager = new GameObject("PlayerManager");
+        playerManager.AddComponent<PlayerManager3D>();
+    }
+
+    static void AssignSpawns(GameManager3D manager, TeleportController[] spawns)
+    {
+        if (manager == null)
+        {
+            Debug.LogError("EscapeShipBootstrap has no GameManager3D to receive spawn points.");
+            return;
+        }
+
+        manager.SpawnLocations = spawns;
+    }
+
+    void EnsureSceneCamera(Transform interior)
+    {
+        sceneCamera = GetComponent<Camera>();
+        if (sceneCamera == null)
+        {
+            sceneCamera = gameObject.AddComponent<Camera>();
+        }
+
+        sceneListener = GetComponent<AudioListener>();
+        if (sceneListener == null)
+        {
+            sceneListener = gameObject.AddComponent<AudioListener>();
+        }
+
+        transform.position = interior.position + new Vector3(0f, 1.6f, -4f);
+        transform.rotation = Quaternion.identity;
+        sceneCamera.clearFlags = CameraClearFlags.SolidColor;
+        sceneCamera.backgroundColor = new Color(0.05f, 0.06f, 0.08f);
+        sceneCamera.nearClipPlane = 0.05f;
+        sceneCamera.farClipPlane = 40f;
+    }
+
+    static void CreateBox(Transform parent, string name, Vector3 localPosition, Vector3 scale, Color color)
+    {
+        var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube.name = name;
+        cube.transform.SetParent(parent, false);
+        cube.transform.localPosition = localPosition;
+        cube.transform.localScale = scale;
+        var renderer = cube.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.material.color = color;
+        }
+    }
+}
